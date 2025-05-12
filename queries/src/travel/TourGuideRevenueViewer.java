@@ -14,7 +14,7 @@ import java.util.Locale;
 public class TourGuideRevenueViewer extends JFrame {
     private JPanel contentPane;
     private JTable tableResults;
-    private DefaultTableModel tableModel;
+    private DefaultTableModel tableModel ;
     private JTextField txtStatus;
     private JButton btnConnect;
     private JButton btnRefresh;

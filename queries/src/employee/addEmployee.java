@@ -17,12 +17,12 @@ public class addEmployee extends JFrame {
     
     // UI Components
     private JTextField txtFname, txtLname, txtSsn;
-    private JComboBox<Integer> cboDno;
+    private JComboBox<Integer> cboDno  ;
     private JButton btnConnect, btnAdd, btnRefresh, btnExit;
     private JTable tblEmployees;
     private DefaultTableModel tableModel;
     private JLabel lblStatus;
-    private Connection conn = null;
+    private Connection conn = null; 
     
     public addEmployee() {
         // Set up JFrame

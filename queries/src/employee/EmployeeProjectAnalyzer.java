@@ -23,7 +23,7 @@ public class EmployeeProjectAnalyzer extends JFrame {
     
     // The SQL query
     private static final String EMPLOYEE_PROJECT_QUERY = 
-        "SELECT e.Fname, e.Lname, d.Dname, e.Dno,\n" +
+        " SELECT e.Fname, e.Lname, d.Dname, e.Dno,\n" +
         "    COUNT(DISTINCT wo.Pno) AS Number_Of_Projects,\n" +
         "    COUNT(DISTINCT dep.Dependent_name) AS Number_Of_Dependents\n" +
         "FROM employee AS e\n" +
