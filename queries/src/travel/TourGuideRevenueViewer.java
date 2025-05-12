@@ -146,9 +146,9 @@ public class TourGuideRevenueViewer extends JFrame {
         tableResults.setIntercellSpacing(new Dimension(10, 5));
         tableResults.setFillsViewportHeight(true);
         tableResults.setShowVerticalLines(false);
-        tableResults.setGridColor(new Color(230, 230, 250));
-        tableResults.setSelectionBackground(new Color(100, 149, 237));
-        tableResults.setSelectionForeground(Color.BLACK);
+        tableResults.setGridColor(new Color(230, 240, 250));
+        tableResults.setSelectionBackground(new Color(70, 130, 180));
+        tableResults.setSelectionForeground(Color.WHITE);
         tableResults.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         
         // Format revenue column as currency
