@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.event.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
 public class AddLanguage extends JFrame {
@@ -16,11 +16,19 @@ public class AddLanguage extends JFrame {
     private JTextField txtStatus;
     private JButton btnAdd;
     private JButton btnClear;
+    private JButton btnShowGuides;
     private JButton btnExit;
     
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
+    
+    // Blue and black color theme for Travel package
+    private static final Color DARK_BLUE = new Color(15, 35, 60);
+    private static final Color MEDIUM_BLUE = new Color(25, 84, 123);
+    private static final Color LIGHT_BLUE = new Color(70, 130, 180);
+    private static final Color VERY_LIGHT_BLUE = new Color(240, 248, 255);
+    private static final Color ACCENT_BLUE = new Color(30, 144, 255);
     
     /**
      * Launch the application.
@@ -50,7 +58,7 @@ public class AddLanguage extends JFrame {
      */
     public AddLanguage() {
         setTitle("Add Tour Guide Language");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 800, 500);
         setLocationRelativeTo(null);
         
@@ -61,8 +69,8 @@ public class AddLanguage extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(25, 84, 123), 
-                                                 getWidth(), getHeight(), new Color(15, 54, 82));
+                GradientPaint gp = new GradientPaint(0, 0, MEDIUM_BLUE, 
+                                                 getWidth(), getHeight(), DARK_BLUE);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
@@ -108,7 +116,9 @@ public class AddLanguage extends JFrame {
         txtGuideId = new JTextField();
         txtGuideId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtGuideId.setBounds(350, 50, 200, 35);
-        txtGuideId.setBorder(null);
+        txtGuideId.setBackground(VERY_LIGHT_BLUE);
+        txtGuideId.setForeground(DARK_BLUE);
+        txtGuideId.setBorder(BorderFactory.createLineBorder(LIGHT_BLUE));
         panelForm.add(txtGuideId);
         
         // Language
@@ -121,21 +131,27 @@ public class AddLanguage extends JFrame {
         txtLanguage = new JTextField();
         txtLanguage.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtLanguage.setBounds(350, 110, 200, 35);
-        txtLanguage.setBorder(null);
+        txtLanguage.setBackground(VERY_LIGHT_BLUE);
+        txtLanguage.setForeground(DARK_BLUE);
+        txtLanguage.setBorder(BorderFactory.createLineBorder(LIGHT_BLUE));
         panelForm.add(txtLanguage);
         
         // Information panel
         JPanel infoPanel = new JPanel();
         infoPanel.setBackground(new Color(70, 130, 180, 120));
-        infoPanel.setBounds(200, 170, 350, 80);
+        infoPanel.setBounds(200, 170, 350, 110);
         infoPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 100)));
         panelForm.add(infoPanel);
         infoPanel.setLayout(new BorderLayout());
         
-        JLabel lblInfo = new JLabel("<html>Add a new language that a tour guide can speak. " +
-                "Both the Guide ID and Language name are required. Guide must exist in the database.</html>");
+        JLabel lblInfo = new JLabel("<html><div style='text-align: center; margin: 10px;'>" + 
+                "<b>Instructions:</b><br/>" +
+                "Add a new language that a tour guide can speak. " +
+                "Both the Guide ID and Language name are required.<br/><br/>" +
+                "Press 'Show Guides' to see a list of available tour guides." +
+                "</div></html>");
         lblInfo.setForeground(Color.WHITE);
-        lblInfo.setFont(new Font("Segoe UI", Font.ITALIC, 12));
+        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         lblInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         infoPanel.add(lblInfo, BorderLayout.CENTER);
         
@@ -154,7 +170,7 @@ public class AddLanguage extends JFrame {
         txtStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtStatus.setBorder(null);
         txtStatus.setHorizontalAlignment(SwingConstants.CENTER);
-        txtStatus.setPreferredSize(new Dimension(250, 35));
+        txtStatus.setPreferredSize(new Dimension(200, 35));
         panelFooter.add(txtStatus);
         
         // Add button
@@ -165,6 +181,15 @@ public class AddLanguage extends JFrame {
             }
         });
         panelFooter.add(btnAdd);
+        
+        // Show Guides button (new)
+        btnShowGuides = createStyledButton("Show Guides");
+        btnShowGuides.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showGuides();
+            }
+        });
+        panelFooter.add(btnShowGuides);
         
         // Clear button
         btnClear = createStyledButton("Clear Form");
@@ -189,7 +214,7 @@ public class AddLanguage extends JFrame {
      * Creates a styled button with visual effects
      */
     private JButton createStyledButton(String text) {
-        JButton button = new JButton(text) {
+        JButton button = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
@@ -198,7 +223,7 @@ public class AddLanguage extends JFrame {
                 if (getModel().isPressed()) {
                     g2.setColor(new Color(30, 144, 255));
                 } else if (getModel().isRollover()) {
-                    g2.setColor(new Color(70, 130, 180));
+                    g2.setColor(LIGHT_BLUE);
                 } else {
                     g2.setColor(new Color(51, 102, 153));
                 }
@@ -209,13 +234,18 @@ public class AddLanguage extends JFrame {
                 g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
                 
                 FontMetrics fm = g2.getFontMetrics();
-                Rectangle2D r = fm.getStringBounds(getText(), g2);
-                int x = (getWidth() - (int)r.getWidth()) / 2;
-                int y = (getHeight() - (int)r.getHeight()) / 2 + fm.getAscent();
+                int textWidth = fm.stringWidth(text);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
                 
                 g2.setColor(Color.WHITE);
-                g2.drawString(getText(), x, y);
+                g2.drawString(text, x, y);
                 g2.dispose();
+            }
+            
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(130, 35);
             }
         };
         
@@ -224,7 +254,6 @@ public class AddLanguage extends JFrame {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
-        button.setPreferredSize(new Dimension(130, 35));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         return button;
@@ -237,6 +266,109 @@ public class AddLanguage extends JFrame {
         txtGuideId.setText("");
         txtLanguage.setText("");
         txtStatus.setText("Form cleared");
+    }
+    
+    /**
+     * Show list of available guides
+     */
+    private void showGuides() {
+        SwingWorker<JTable, Void> worker = new SwingWorker<JTable, Void>() {
+            @Override
+            protected JTable doInBackground() throws Exception {
+                Connection conn = null;
+                Statement stmt = null;
+                ResultSet rs = null;
+                
+                try {
+                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
+                    stmt = conn.createStatement();
+                    rs = stmt.executeQuery("SELECT GuideId, guidename FROM tourguide ORDER BY GuideId");
+                    
+                    // Create table model
+                    String[] columnNames = {"Guide ID", "Guide Name"};
+                    DefaultTableModel model = new DefaultTableModel(columnNames, 0) {
+                        @Override
+                        public boolean isCellEditable(int row, int column) {
+                            return false;
+                        }
+                    };
+                    
+                    // Populate model
+                    while (rs.next()) {
+                        model.addRow(new Object[] {
+                            rs.getInt("GuideId"),
+                            rs.getString("guidename")
+                        });
+                    }
+                    
+                    // Create and configure table
+                    JTable guidesTable = new JTable(model);
+                    guidesTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+                    guidesTable.setRowHeight(25);
+                    guidesTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+                    
+                    // Set colors
+                    guidesTable.setBackground(VERY_LIGHT_BLUE);
+                    guidesTable.setForeground(DARK_BLUE);
+                    guidesTable.setSelectionBackground(LIGHT_BLUE);
+                    guidesTable.setSelectionForeground(Color.WHITE);
+                    
+                    // Set header style
+                    JTableHeader header = guidesTable.getTableHeader();
+                    header.setBackground(MEDIUM_BLUE);
+                    header.setForeground(Color.WHITE);
+                    header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                    
+                    // Add selection listener
+                    guidesTable.getSelectionModel().addListSelectionListener(e -> {
+                        if (!e.getValueIsAdjusting() && guidesTable.getSelectedRow() != -1) {
+                            int guideId = (int) guidesTable.getValueAt(guidesTable.getSelectedRow(), 0);
+                            txtGuideId.setText(String.valueOf(guideId));
+                        }
+                    });
+                    
+                    return guidesTable;
+                    
+                } finally {
+                    try {
+                        if (rs != null) rs.close();
+                        if (stmt != null) stmt.close();
+                        if (conn != null) conn.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
+            @Override
+            protected void done() {
+                try {
+                    JTable guidesTable = get();
+                    
+                    // Create scrollpane
+                    JScrollPane scrollPane = new JScrollPane(guidesTable);
+                    scrollPane.setPreferredSize(new Dimension(500, 300));
+                    
+                    // Show in dialog
+                    JOptionPane.showMessageDialog(
+                        AddLanguage.this,
+                        scrollPane,
+                        "Available Tour Guides",
+                        JOptionPane.INFORMATION_MESSAGE
+                    );
+                    
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(
+                        AddLanguage.this,
+                        "Error retrieving guides: " + e.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+        };
+        
+        worker.execute();
     }
     
     /**

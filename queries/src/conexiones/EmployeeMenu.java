@@ -10,15 +10,18 @@ import employee.*;
 
 /**
  * EmployeeMenu - Navigation interface for the Employee database queries
+ * Standardized with green theme
  */
 public class EmployeeMenu extends JFrame {
     private JPanel contentPane;
     
-    // Color theme - blues used in employee package
-    private static final Color DARK_BLUE = new Color(25, 50, 93);
-    private static final Color MEDIUM_BLUE = new Color(70, 130, 180);
-    private static final Color LIGHT_BLUE = new Color(173, 216, 230);
-    private static final Color VERY_LIGHT_BLUE = new Color(240, 248, 255);
+    // Green color theme for Employee package
+    private static final Color DARK_GREEN = new Color(25, 80, 45);
+    private static final Color MEDIUM_GREEN = new Color(46, 125, 50);
+    private static final Color LIGHT_GREEN = new Color(129, 199, 132);
+    private static final Color VERY_LIGHT_GREEN = new Color(232, 245, 233);
+    private static final Color TEXT_COLOR = new Color(33, 33, 33);
+    private static final Color ACCENT_COLOR = new Color(76, 175, 80);
     
     /**
      * Launch the application.
@@ -45,7 +48,7 @@ public class EmployeeMenu extends JFrame {
     /**
      * Create the frame.
      */
-    public EmployeeMenu () {
+    public EmployeeMenu() {
         setTitle("Employee Database Queries");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 900, 600);
@@ -59,13 +62,13 @@ public class EmployeeMenu extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, DARK_BLUE,
-                                                  getWidth(), getHeight(), new Color(40, 75, 115));
+                GradientPaint gp = new GradientPaint(0, 0, DARK_GREEN,
+                                                  getWidth(), getHeight(), new Color(40, 110, 60));
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
         };
-        contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        contentPane.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 2));
         setContentPane(contentPane);
         contentPane.setLayout(null);
         
@@ -80,13 +83,13 @@ public class EmployeeMenu extends JFrame {
         JLabel lblTitle = new JLabel("EMPLOYEE DATABASE QUERIES");
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setForeground(Color.WHITE);
-        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 30));
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 32));
         lblTitle.setBounds(10, 11, 864, 50);
         headerPanel.add(lblTitle);
         
         JLabel lblSubtitle = new JLabel("Select a query to view or modify employee data");
         lblSubtitle.setHorizontalAlignment(SwingConstants.CENTER);
-        lblSubtitle.setForeground(LIGHT_BLUE);
+        lblSubtitle.setForeground(new Color(220, 255, 220));
         lblSubtitle.setFont(new Font("Segoe UI", Font.ITALIC, 18));
         lblSubtitle.setBounds(10, 60, 864, 30);
         headerPanel.add(lblSubtitle);
@@ -99,7 +102,7 @@ public class EmployeeMenu extends JFrame {
         buttonsPanel.setLayout(null);
         
         // Button 1: Employee Project Analyzer
-        JButton btnEmployeeProjectAnalyzer = createStyledButton("Employee Project Analyzer", 
+        JButton btnEmployeeProjectAnalyzer = createMenuButton("Employee Project Analyzer", 
             "View employees with projects in their department who have dependents", 
             50, 20, 330, 110);
         btnEmployeeProjectAnalyzer.addActionListener(new ActionListener() {
@@ -110,7 +113,7 @@ public class EmployeeMenu extends JFrame {
         buttonsPanel.add(btnEmployeeProjectAnalyzer);
         
         // Button 2: Employee Pairs
-        JButton btnEmployeePairs = createStyledButton("Department Comparison", 
+        JButton btnEmployeePairs = createMenuButton("Department Comparison", 
             "Analyze department pairs with male/female employees working on the same projects", 
             50, 150, 330, 110);
         btnEmployeePairs.addActionListener(new ActionListener() {
@@ -121,7 +124,7 @@ public class EmployeeMenu extends JFrame {
         buttonsPanel.add(btnEmployeePairs);
         
         // Button 3: Project Employee Hours
-        JButton btnProjectEmployeeHours = createStyledButton("Project Hours Analysis", 
+        JButton btnProjectEmployeeHours = createMenuButton("Project Hours Analysis", 
             "Find employees with highest/lowest hours worked on projects", 
             50, 280, 330, 110);
         btnProjectEmployeeHours.addActionListener(new ActionListener() {
@@ -132,7 +135,7 @@ public class EmployeeMenu extends JFrame {
         buttonsPanel.add(btnProjectEmployeeHours);
         
         // Button 4: Add Employee
-        JButton btnAddEmployee = createStyledButton("Add New Employee", 
+        JButton btnAddEmployee = createMenuButton("Add New Employee", 
             "Add a new employee to the database", 
             420, 20, 330, 110);
         btnAddEmployee.addActionListener(new ActionListener() {
@@ -143,7 +146,7 @@ public class EmployeeMenu extends JFrame {
         buttonsPanel.add(btnAddEmployee);
         
         // Button 5: Update Employee
-        JButton btnUpdateEmployee = createStyledButton("Update Project Department", 
+        JButton btnUpdateEmployee = createMenuButton("Update Project Department", 
             "Update a project's department number", 
             420, 150, 330, 110);
         btnUpdateEmployee.addActionListener(new ActionListener() {
@@ -154,7 +157,7 @@ public class EmployeeMenu extends JFrame {
         buttonsPanel.add(btnUpdateEmployee);
         
         // Return to Main Menu button
-        JButton btnMainMenu = createStyledButton("Return to Main Menu", 
+        JButton btnMainMenu = createMenuButton("Return to Main Menu", 
             "Go back to the main navigation menu", 
             420, 280, 330, 110);
         btnMainMenu.addActionListener(new ActionListener() {
@@ -174,14 +177,11 @@ public class EmployeeMenu extends JFrame {
         JLabel lblStatus = new JLabel(" Employee Database Module");
         lblStatus.setForeground(Color.WHITE);
         lblStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lblStatus.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
         footerPanel.add(lblStatus, BorderLayout.WEST);
         
-        JButton btnExit = new JButton("Exit");
-        btnExit.setFont(new Font("Segoe UI", Font.BOLD, 12));
-        btnExit.setForeground(Color.WHITE);
-        btnExit.setBackground(DARK_BLUE);
-        btnExit.setBorderPainted(false);
-        btnExit.setFocusPainted(false);
+        JButton btnExit = createStyledButton("Exit");
+        btnExit.setPreferredSize(new Dimension(100, 30));
         btnExit.addActionListener(e -> System.exit(0));
         footerPanel.add(btnExit, BorderLayout.EAST);
     }
@@ -189,7 +189,7 @@ public class EmployeeMenu extends JFrame {
     /**
      * Creates a styled button with title and description
      */
-    private JButton createStyledButton(String title, String description, int x, int y, int width, int height) {
+    private JButton createMenuButton(String title, String description, int x, int y, int width, int height) {
         JButton button = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -197,15 +197,15 @@ public class EmployeeMenu extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 if (getModel().isPressed()) {
-                    g2.setColor(DARK_BLUE);
+                    g2.setColor(DARK_GREEN); // Pressed
                 } else if (getModel().isRollover()) {
-                    g2.setColor(MEDIUM_BLUE);
+                    g2.setColor(ACCENT_COLOR); // Hover
                 } else {
-                    g2.setColor(new Color(40, 80, 120, 220));
+                    g2.setColor(MEDIUM_GREEN); // Normal
                 }
                 
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-                g2.setColor(new Color(255, 255, 255, 50));
+                g2.setColor(new Color(255, 255, 255, 50)); // Subtle border
                 g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 15, 15);
                 
                 // Draw title
@@ -219,7 +219,7 @@ public class EmployeeMenu extends JFrame {
                 
                 // Draw description
                 g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                g2.setColor(VERY_LIGHT_BLUE);
+                g2.setColor(VERY_LIGHT_GREEN);
                 
                 drawWrappedText(g2, description, 15, 55, getWidth() - 30);
                 
@@ -261,6 +261,51 @@ public class EmployeeMenu extends JFrame {
     }
     
     /**
+     * Creates a smaller styled button for controls
+     */
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                
+                if (getModel().isPressed()) {
+                    g2.setColor(DARK_GREEN);
+                } else if (getModel().isRollover()) {
+                    g2.setColor(ACCENT_COLOR);
+                } else {
+                    g2.setColor(MEDIUM_GREEN);
+                }
+                
+                g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 10, 10));
+                g2.setColor(new Color(255, 255, 255, 50));
+                g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
+                
+                // Draw text
+                g2.setFont(new Font("Segoe UI", Font.BOLD, 14));
+                g2.setColor(Color.WHITE);
+                
+                FontMetrics fm = g2.getFontMetrics();
+                int textWidth = fm.stringWidth(text);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
+                g2.drawString(text, x, y);
+                
+                g2.dispose();
+            }
+        };
+        
+        button.setOpaque(false);
+        button.setContentAreaFilled(false);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        
+        return button;
+    }
+    
+    /**
      * Open the EmployeeProjectAnalyzer
      */
     private void openEmployeeProjectAnalyzer() {
@@ -288,8 +333,14 @@ public class EmployeeMenu extends JFrame {
      * Open the addEmployee
      */
     private void openAddEmployee() {
+        // Since addEmployee doesn't have a GUI yet, show a message
+        JOptionPane.showMessageDialog(this,
+            "This would open the Add Employee form.\nThe implementation is currently console-based.",
+            "Information",
+            JOptionPane.INFORMATION_MESSAGE);
+            
         addEmployee frame = new addEmployee();
-        frame.setVisible(true);
+         frame.setVisible(true);
     }
     
     /**

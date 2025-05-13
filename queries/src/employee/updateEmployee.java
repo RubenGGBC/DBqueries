@@ -21,10 +21,10 @@ public class updateEmployee extends JFrame {
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
     
-    private static final Color DARK_BLUE = new Color(25, 50, 93);
-    private static final Color MEDIUM_BLUE = new Color(70, 130, 180);
-    private static final Color LIGHT_BLUE = new Color(173, 216, 230);
-    private static final Color VERY_LIGHT_BLUE = new Color(240, 248, 255);
+    private static final Color DARK_GREEN = new Color(25, 93, 50);
+    private static final Color MEDIUM_GREEN = new Color(70, 180, 100);
+    private static final Color LIGHT_GREEN = new Color(173, 230, 188);
+    private static final Color VERY_LIGHT_GREEN = new Color(240, 255, 245);
     
     /**
      * Launch the application.
@@ -60,15 +60,15 @@ public class updateEmployee extends JFrame {
         
         // Simple panel with border
         contentPane = new JPanel();
-        contentPane.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 2));
-        contentPane.setBackground(VERY_LIGHT_BLUE);
+        contentPane.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 2));
+        contentPane.setBackground(VERY_LIGHT_GREEN);
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(0, 0));
         
         // Header panel
         JPanel headerPanel = new JPanel();
-        headerPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
-        headerPanel.setBackground(MEDIUM_BLUE);
+        headerPanel.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
+        headerPanel.setBackground(MEDIUM_GREEN);
         headerPanel.setPreferredSize(new Dimension(600, 80));
         contentPane.add(headerPanel, BorderLayout.NORTH);
         headerPanel.setLayout(new BorderLayout());
@@ -82,55 +82,55 @@ public class updateEmployee extends JFrame {
         
         // Form panel
         JPanel formPanel = new JPanel();
-        formPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
-        formPanel.setBackground(VERY_LIGHT_BLUE);
+        formPanel.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
+        formPanel.setBackground(VERY_LIGHT_GREEN);
         contentPane.add(formPanel, BorderLayout.CENTER);
         formPanel.setLayout(null);
         
         // Project Name
         JLabel lblProjectName = new JLabel("Project Name:");
         lblProjectName.setFont(new Font("Arial", Font.BOLD, 14));
-        lblProjectName.setForeground(DARK_BLUE);
+        lblProjectName.setForeground(DARK_GREEN);
         lblProjectName.setBounds(50, 40, 150, 25);
         formPanel.add(lblProjectName);
         
         txtProjectName = new JTextField();
         txtProjectName.setFont(new Font("Arial", Font.PLAIN, 14));
         txtProjectName.setBounds(200, 40, 320, 30);
-        txtProjectName.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE, 1));
+        txtProjectName.setBorder(BorderFactory.createLineBorder(MEDIUM_GREEN, 1));
         formPanel.add(txtProjectName);
         
         // Department Number
         JLabel lblNewDno = new JLabel("New Department No:");
         lblNewDno.setFont(new Font("Arial", Font.BOLD, 14));
-        lblNewDno.setForeground(DARK_BLUE);
+        lblNewDno.setForeground(DARK_GREEN);
         lblNewDno.setBounds(50, 90, 150, 25);
         formPanel.add(lblNewDno);
         
         txtNewDno = new JTextField();
         txtNewDno.setFont(new Font("Arial", Font.PLAIN, 14));
         txtNewDno.setBounds(200, 90, 320, 30);
-        txtNewDno.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE, 1));
+        txtNewDno.setBorder(BorderFactory.createLineBorder(MEDIUM_GREEN, 1));
         formPanel.add(txtNewDno);
         
         // Note/instructions
         JPanel instructionPanel = new JPanel();
-        instructionPanel.setBackground(new Color(255, 255, 224)); // Light yellow
-        instructionPanel.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE, 1));
+        instructionPanel.setBackground(new Color(240, 255, 240)); // Very light green for instruction panel
+        instructionPanel.setBorder(BorderFactory.createLineBorder(MEDIUM_GREEN, 1));
         instructionPanel.setBounds(50, 150, 470, 60);
         formPanel.add(instructionPanel);
         instructionPanel.setLayout(new BorderLayout());
         
         JLabel lblInstruction = new JLabel("<html>This form will update the department number of the project with the given name. Ensure both fields are filled correctly.</html>");
         lblInstruction.setFont(new Font("Arial", Font.ITALIC, 13));
-        lblInstruction.setForeground(DARK_BLUE);
+        lblInstruction.setForeground(DARK_GREEN);
         lblInstruction.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         instructionPanel.add(lblInstruction, BorderLayout.CENTER);
         
         // Control panel
         JPanel controlPanel = new JPanel();
-        controlPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
-        controlPanel.setBackground(LIGHT_BLUE);
+        controlPanel.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
+        controlPanel.setBackground(LIGHT_GREEN);
         controlPanel.setPreferredSize(new Dimension(600, 80));
         contentPane.add(controlPanel, BorderLayout.SOUTH);
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));
@@ -138,13 +138,13 @@ public class updateEmployee extends JFrame {
         txtStatus = new JTextField("Ready to update project");
         txtStatus.setEditable(false);
         txtStatus.setFont(new Font("Arial", Font.BOLD, 12));
-        txtStatus.setForeground(DARK_BLUE);
-        txtStatus.setBackground(VERY_LIGHT_BLUE);
+        txtStatus.setForeground(DARK_GREEN);
+        txtStatus.setBackground(VERY_LIGHT_GREEN);
         txtStatus.setPreferredSize(new Dimension(200, 25));
-        txtStatus.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE));
+        txtStatus.setBorder(BorderFactory.createLineBorder(MEDIUM_GREEN));
         controlPanel.add(txtStatus);
         
-        btnUpdate = createStyledButton("Update Project", DARK_BLUE, Color.WHITE);
+        btnUpdate = createStyledButton("Update Project", DARK_GREEN, Color.WHITE);
         btnUpdate.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 updateProjectDepartment();
@@ -152,7 +152,7 @@ public class updateEmployee extends JFrame {
         });
         controlPanel.add(btnUpdate);
         
-        btnClear = createStyledButton("Clear", DARK_BLUE, Color.WHITE);
+        btnClear = createStyledButton("Clear", DARK_GREEN, Color.WHITE);
         btnClear.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 clearForm();
@@ -160,7 +160,7 @@ public class updateEmployee extends JFrame {
         });
         controlPanel.add(btnClear);
         
-        btnExit = createStyledButton("Exit", DARK_BLUE, Color.WHITE);
+        btnExit = createStyledButton("Exit", DARK_GREEN, Color.WHITE);
         btnExit.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.exit(0);

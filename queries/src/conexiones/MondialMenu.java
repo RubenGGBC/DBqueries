@@ -121,10 +121,21 @@ public class MondialMenu extends JFrame {
         });
         buttonsPanel.add(btnGdpComparison);
         
-        // Button 3: Return to Main Menu
+        // Button 3: Population Density Analysis (New)
+        JButton btnPopulationDensity = createStyledButton("Population Density Analysis", 
+            "View countries with highest population density and city counts", 
+            420, 30, 330, 140);
+        btnPopulationDensity.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                openQuery3();
+            }
+        });
+        buttonsPanel.add(btnPopulationDensity);
+        
+        // Button 4: Return to Main Menu
         JButton btnMainMenu = createStyledButton("Return to Main Menu", 
             "Go back to the main navigation menu", 
-            420, 110, 330, 140);
+            420, 210, 330, 140);
         btnMainMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 returnToMainMenu();
@@ -241,6 +252,14 @@ public class MondialMenu extends JFrame {
      */
     private void openQuery2() {
         query2 frame = new query2(); // MondialDB.query2
+        frame.setVisible(true);
+    }
+    
+    /**
+     * Open query3 - Population Density Analysis (New)
+     */
+    private void openQuery3() {
+        query3 frame = new query3(); // MondialDB.query3
         frame.setVisible(true);
     }
     

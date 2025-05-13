@@ -10,9 +10,7 @@ import employee.*;
 import travel.*;
 import MondialDB.*;
 
-/**
- * MainMenuConnector - The main navigation hub that connects to all package menus
- */
+
 public class MainMenuConector extends JFrame {
     private JPanel contentPane;
     

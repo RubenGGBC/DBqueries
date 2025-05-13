@@ -6,7 +6,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.event.*;
-import java.awt.geom.Rectangle2D;
+import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
@@ -14,10 +14,12 @@ import java.util.Locale;
 public class TourGuideRevenueViewer extends JFrame {
     private JPanel contentPane;
     private JTable tableResults;
-    private DefaultTableModel tableModel ;
+    private DefaultTableModel tableModel;
     private JTextField txtStatus;
     private JButton btnConnect;
     private JButton btnRefresh;
+    private JButton btnShowSQL;
+    private JButton btnExport;
     
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
@@ -45,6 +47,13 @@ public class TourGuideRevenueViewer extends JFrame {
         "    tg.GuideId, tg.guidename " +
         "ORDER BY " +
         "    TotalRevenue DESC";
+
+    // Blue and black color theme for Travel package
+    private static final Color DARK_BLUE = new Color(15, 35, 60);
+    private static final Color MEDIUM_BLUE = new Color(25, 84, 123);
+    private static final Color LIGHT_BLUE = new Color(70, 130, 180);
+    private static final Color VERY_LIGHT_BLUE = new Color(240, 248, 255);
+    private static final Color ACCENT_BLUE = new Color(30, 144, 255);
 
     /**
      * Launch the application.
@@ -74,19 +83,19 @@ public class TourGuideRevenueViewer extends JFrame {
      */
     public TourGuideRevenueViewer() {
         setTitle("Tour Guide Revenue Analysis");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1200, 700);
         setLocationRelativeTo(null);
         
-        // Custom main panel with gradient background
+        // Create gradient panel
         contentPane = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(39, 60, 117), 
-                                                 getWidth(), getHeight(), new Color(25, 42, 86));
+                GradientPaint gp = new GradientPaint(0, 0, MEDIUM_BLUE,
+                                                  getWidth(), getHeight(), DARK_BLUE);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
@@ -115,6 +124,33 @@ public class TourGuideRevenueViewer extends JFrame {
         lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 16));
         lblSubtitle.setBounds(10, 50, 1164, 30);
         panelHeader.add(lblSubtitle);
+        
+        // Statement panel
+        JPanel statementPanel = new JPanel();
+        statementPanel.setBorder(BorderFactory.createLineBorder(LIGHT_BLUE, 1));
+        statementPanel.setBackground(new Color(25, 55, 85));
+        statementPanel.setPreferredSize(new Dimension(1200, 60));
+        contentPane.add(statementPanel, BorderLayout.NORTH);
+        statementPanel.setLayout(new BorderLayout());
+        
+        JLabel statementLabel = new JLabel(" Query Description:");
+        statementLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        statementLabel.setForeground(Color.WHITE);
+        statementPanel.add(statementLabel, BorderLayout.WEST);
+        
+        JTextArea statementText = new JTextArea(
+            "This query analyzes tour guide performance metrics including total trips led, customers served, revenue generated, and languages spoken."
+        );
+        statementText.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        statementText.setForeground(Color.WHITE);
+        statementText.setBackground(new Color(25, 55, 85));
+        statementText.setWrapStyleWord(true);
+        statementText.setLineWrap(true);
+        statementText.setEditable(false);
+        statementText.setMargin(new Insets(5, 20, 5, 10));
+        statementPanel.add(statementText, BorderLayout.CENTER);
+        
+        add(statementPanel, BorderLayout.NORTH);
         
         // Table panel
         JPanel panelTable = new JPanel();
@@ -147,14 +183,12 @@ public class TourGuideRevenueViewer extends JFrame {
         tableResults.setFillsViewportHeight(true);
         tableResults.setShowVerticalLines(false);
         tableResults.setGridColor(new Color(230, 240, 250));
-        tableResults.setSelectionBackground(new Color(70, 130, 180));
-        tableResults.setSelectionForeground(Color.WHITE);
-        tableResults.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
+        tableResults.setSelectionBackground(LIGHT_BLUE);
+        tableResults.setSelectionForeground(Color.blue);
         
         // Format revenue column as currency
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
         DefaultTableCellRenderer currencyRenderer = new DefaultTableCellRenderer() {
-            private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
-            
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, 
                     boolean isSelected, boolean hasFocus, int row, int column) {
@@ -167,18 +201,30 @@ public class TourGuideRevenueViewer extends JFrame {
         currencyRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
         tableResults.getColumnModel().getColumn(4).setCellRenderer(currencyRenderer);
         
-        // Center align for numeric columns
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        tableResults.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-        tableResults.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
-        tableResults.getColumnModel().getColumn(3).setCellRenderer(centerRenderer);
+        // Table default renderer
+        tableResults.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                
+                if (isSelected) {
+                    c.setBackground(table.getSelectionBackground());
+                    c.setForeground(table.getSelectionForeground());
+                } else {
+                    c.setBackground(row % 2 == 0 ? VERY_LIGHT_BLUE : Color.blue);
+                    c.setForeground(DARK_BLUE);
+                }
+                
+                return c;
+            }
+        });
         
         // Table header styling
         JTableHeader header = tableResults.getTableHeader();
         header.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        header.setBackground(new Color(39, 60, 117));
-        header.setForeground(Color.WHITE);
+        header.setBackground(MEDIUM_BLUE);
+        header.setForeground(Color.blue);
         header.setPreferredSize(new Dimension(100, 35));
         
         // Set column widths
@@ -199,8 +245,8 @@ public class TourGuideRevenueViewer extends JFrame {
         scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
             @Override
             protected void configureScrollBarColors() {
-                this.thumbColor = new Color(100, 149, 237);
-                this.trackColor = new Color(39, 60, 117);
+                this.thumbColor = LIGHT_BLUE;
+                this.trackColor = DARK_BLUE;
             }
             
             @Override
@@ -229,12 +275,16 @@ public class TourGuideRevenueViewer extends JFrame {
         panelFooter.setOpaque(false);
         panelFooter.setPreferredSize(new Dimension(1200, 60));
         contentPane.add(panelFooter, BorderLayout.SOUTH);
-        panelFooter.setLayout(new BorderLayout(0, 0));
+        panelFooter.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));
         
-        JPanel panelControls = new JPanel();
-        panelControls.setOpaque(false);
-        panelFooter.add(panelControls, BorderLayout.EAST);
-        panelControls.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        txtStatus = new JTextField("Not connected to database");
+        txtStatus.setEditable(false);
+        txtStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtStatus.setBorder(null);
+        txtStatus.setOpaque(false);
+        txtStatus.setForeground(new Color(255, 200, 200));
+        txtStatus.setPreferredSize(new Dimension(300, 25));
+        panelFooter.add(txtStatus);
         
         btnConnect = createStyledButton("Connect to Database");
         btnConnect.addActionListener(new ActionListener() {
@@ -242,7 +292,7 @@ public class TourGuideRevenueViewer extends JFrame {
                 fetchData();
             }
         });
-        panelControls.add(btnConnect);
+        panelFooter.add(btnConnect);
         
         btnRefresh = createStyledButton("Refresh Data");
         btnRefresh.setEnabled(false);
@@ -251,45 +301,53 @@ public class TourGuideRevenueViewer extends JFrame {
                 fetchData();
             }
         });
-        panelControls.add(btnRefresh);
+        panelFooter.add(btnRefresh);
         
-        JPanel panelStatus = new JPanel();
-        panelStatus.setOpaque(false);
-        panelFooter.add(panelStatus, BorderLayout.WEST);
-        panelStatus.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 10));
+        btnShowSQL = createStyledButton("Show SQL");
+        btnShowSQL.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showSQLStatement();
+            }
+        });
+        panelFooter.add(btnShowSQL);
         
-        JLabel lblStatusText = new JLabel("Status:");
-        lblStatusText.setForeground(Color.WHITE);
-        lblStatusText.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        panelStatus.add(lblStatusText);
+        btnExport = createStyledButton("Export Data");
+        btnExport.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                exportData();
+            }
+        });
+        panelFooter.add(btnExport);
         
-        txtStatus = new JTextField();
-        txtStatus.setText("Not connected to database");
-        txtStatus.setEditable(false);
-        txtStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        txtStatus.setBorder(null);
-        txtStatus.setOpaque(false);
-        txtStatus.setForeground(new Color(255, 200, 200));
-        txtStatus.setPreferredSize(new Dimension(300, 25));
-        panelStatus.add(txtStatus);
+        JButton btnExit = createStyledButton("Exit");
+        btnExit.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                dispose();
+            }
+        });
+        panelFooter.add(btnExit);
     }
     
     /**
      * Create a styled button with hover effects
      */
     private JButton createStyledButton(String text) {
-        JButton button = new JButton(text) {
+        JButton button = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D)g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 if (getModel().isPressed()) {
-                    g2.setColor(new Color(70, 130, 180));
+                    g2.setColor(new Color(30, 144, 255));
                 } else if (getModel().isRollover()) {
-                    g2.setColor(new Color(100, 149, 237));
+                    g2.setColor(LIGHT_BLUE);
                 } else {
-                    g2.setColor(new Color(65, 105, 225));
+                    g2.setColor(new Color(51, 102, 153));
+                }
+                
+                if (!isEnabled()) {
+                    g2.setColor(new Color(100, 100, 100));
                 }
                 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
@@ -298,13 +356,18 @@ public class TourGuideRevenueViewer extends JFrame {
                 g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 10, 10);
                 
                 FontMetrics fm = g2.getFontMetrics();
-                Rectangle2D r = fm.getStringBounds(getText(), g2);
-                int x = (getWidth() - (int)r.getWidth()) / 2;
-                int y = (getHeight() - (int)r.getHeight()) / 2 + fm.getAscent();
+                int textWidth = fm.stringWidth(text);
+                int x = (getWidth() - textWidth) / 2;
+                int y = (getHeight() + fm.getAscent() - fm.getDescent()) / 2;
                 
-                g2.setColor(Color.WHITE);
-                g2.drawString(getText(), x, y);
+                g2.setColor(isEnabled() ? Color.WHITE : new Color(200, 200, 200));
+                g2.drawString(text, x, y);
                 g2.dispose();
+            }
+            
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(150, 35);
             }
         };
         
@@ -313,10 +376,44 @@ public class TourGuideRevenueViewer extends JFrame {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
-        button.setPreferredSize(new Dimension(180, 35));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         return button;
+    }
+    
+    /**
+     * Show SQL Statement in a dialog
+     */
+    private void showSQLStatement() {
+        JTextArea textArea = new JTextArea(TOUR_GUIDE_QUERY);
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        textArea.setBackground(new Color(240, 248, 255));
+        textArea.setForeground(DARK_BLUE);
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(800, 400));
+        
+        JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    /**
+     * Export data to a file (placeholder)
+     */
+    private void exportData() {
+        if (tableModel.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(this, 
+                "No data to export. Please execute the query first.", 
+                "Export Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // This is a placeholder for export functionality
+        JOptionPane.showMessageDialog(this, 
+            "Data would be exported to CSV/Excel here.", 
+            "Export Data", 
+            JOptionPane.INFORMATION_MESSAGE);
     }
     
     /**
@@ -386,9 +483,11 @@ public class TourGuideRevenueViewer extends JFrame {
                     txtStatus.setForeground(new Color(200, 255, 200));
                     btnRefresh.setEnabled(true);
                     btnConnect.setText("Reconnect");
+                    btnExport.setEnabled(true);
                 } else {
                     txtStatus.setText("Connection failed. Check console for details.");
                     txtStatus.setForeground(new Color(255, 150, 150));
+                    btnExport.setEnabled(false);
                 }
             }
         };
@@ -396,4 +495,3 @@ public class TourGuideRevenueViewer extends JFrame {
         worker.execute();
     }
 }
- 
