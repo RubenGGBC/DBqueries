@@ -29,7 +29,7 @@ public class query3 extends JFrame {
     private static final String PASS = "DBI08";
 
     public query3() {
-        setTitle("Country Population Analysis");
+        setTitle("Province Population Analysis");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         getContentPane().setBackground(PASTEL_BACKGROUND);
@@ -48,13 +48,13 @@ public class query3 extends JFrame {
         headerPanel.setPreferredSize(new Dimension(900, 80));
         headerPanel.setLayout(new BorderLayout());
         
-        JLabel titleLabel = new JLabel("Countries with Highest Population Density");
+        JLabel titleLabel = new JLabel("Provinces with Cities Above Population Threshold");
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleLabel.setForeground(PASTEL_TEXT);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
         headerPanel.add(titleLabel, BorderLayout.CENTER);
         
-        JLabel subtitleLabel = new JLabel("Analysis of population density and city distribution");
+        JLabel subtitleLabel = new JLabel("Analysis of provinces where all cities have at least 300 people");
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         subtitleLabel.setForeground(PASTEL_TEXT);
         subtitleLabel.setFont(new Font("Serif", Font.ITALIC, 16));
@@ -75,9 +75,9 @@ public class query3 extends JFrame {
         statementPanel.add(statementLabel, BorderLayout.NORTH);
         
         JTextArea statementText = new JTextArea(
-            "This query finds the top 20 countries with the highest population density (population divided by area), " +
-            "showing the total number of cities in each country. It provides insights into urban concentration and " +
-            "helps identify densely populated regions."
+            "This query selects all provinces such that all their cities have at least 300 people. For them, " +
+            "it shows the amount of cities per province, and the average population on them. Also, it displays " +
+            "the name of the city with the biggest amount of citizens in the province, along with the population amount."
         );
         statementText.setFont(new Font("Serif", Font.PLAIN, 14));
         statementText.setForeground(PASTEL_BUTTON_TEXT);
@@ -213,16 +213,26 @@ public class query3 extends JFrame {
     private void executeQuery() {
         statusLabel.setText("Executing query...");
         
-        // Query for population density
-        String query = "SELECT c.Name, c.Population, c.Area, " +
-                      "(c.Population / c.Area) AS PopulationDensity, " +
-                      "COUNT(city.Name) AS NumberOfCities " +
-                      "FROM country AS c " +
-                      "JOIN city ON c.Code = city.Country " +
-                      "WHERE c.Area > 0 " +
-                      "GROUP BY c.Name, c.Population, c.Area " +
-                      "ORDER BY PopulationDensity DESC " +
-                      "LIMIT 20";
+        // Query for provinces where all cities have at least 300 people
+        String query = "SELECT pr.name, pr.Population, pr.Country, COUNT(city.Name) AS 'Number of cities', " +
+                      "AVG(city.Population) AS 'Average population', " +
+                      "( " + 
+                      "    SELECT Name " +
+                      "    FROM city " +
+                      "    WHERE city.Province=pr.Name AND city.Country = pr.Country " +
+                      "    ORDER by city.Population DESC " +
+                      "    LIMIT 1 " +
+                      ") as 'City with most citizens', " +
+                      "MAX(city.Population) AS 'Population in city' " +
+                      "FROM province AS pr " +
+                      "JOIN city ON pr.Name=city.Province AND pr.Country=city.Country " +
+                      "WHERE NOT EXISTS ( " +
+                      "    SELECT c.name " +
+                      "    FROM city AS c " +
+                      "    WHERE c.Province=pr.Name AND c.Country=pr.Country AND (c.Population<300 OR c.Population IS NULL) " +
+                      ")  " +
+                      "GROUP BY pr.name, pr.Population, pr.Country " +
+                      "ORDER BY AVG(city.Population) ASC";
 
         try {
             Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
@@ -255,9 +265,9 @@ public class query3 extends JFrame {
                 @Override
                 public Class<?> getColumnClass(int columnIndex) {
                     if (columnIndex == 1) return Integer.class; // Population
-                    if (columnIndex == 2) return Double.class;  // Area
-                    if (columnIndex == 3) return Double.class;  // Population Density
-                    if (columnIndex == 4) return Integer.class; // Number of Cities
+                    if (columnIndex == 3) return Integer.class; // Number of cities
+                    if (columnIndex == 4) return Double.class;  // Average population
+                    if (columnIndex == 6) return Integer.class; // Population in city
                     return String.class;
                 }
             });
@@ -266,8 +276,9 @@ public class query3 extends JFrame {
             DefaultTableCellRenderer rightRenderer = new DefaultTableCellRenderer();
             rightRenderer.setHorizontalAlignment(JLabel.RIGHT);
             resultTable.getColumnModel().getColumn(1).setCellRenderer(rightRenderer); // Population
-            resultTable.getColumnModel().getColumn(2).setCellRenderer(rightRenderer); // Area
-            resultTable.getColumnModel().getColumn(3).setCellRenderer(rightRenderer); // PopulationDensity
+            resultTable.getColumnModel().getColumn(3).setCellRenderer(rightRenderer); // Number of cities
+            resultTable.getColumnModel().getColumn(4).setCellRenderer(rightRenderer); // Average population
+            resultTable.getColumnModel().getColumn(6).setCellRenderer(rightRenderer); // Population in city
             
             // Center-align column headers
             ((DefaultTableCellRenderer)resultTable.getTableHeader().getDefaultRenderer())
@@ -290,16 +301,26 @@ public class query3 extends JFrame {
     }
     
     private void showSQLStatement() {
-        String queryText = "-- This query finds the countries with the highest population density\n" +
-                         "SELECT c.Name, c.Population, c.Area,\n" +
-                         "       (c.Population / c.Area) AS PopulationDensity,\n" +
-                         "       COUNT(city.Name) AS NumberOfCities\n" +
-                         "FROM country AS c\n" +
-                         "JOIN city ON c.Code = city.Country\n" +
-                         "WHERE c.Area > 0\n" +
-                         "GROUP BY c.Name, c.Population, c.Area\n" +
-                         "ORDER BY PopulationDensity DESC\n" +
-                         "LIMIT 20";
+        String queryText = "-- This query finds provinces where all cities have at least 300 people\n" +
+                      "SELECT pr.name, pr.Population, pr.Country, COUNT(city.Name) AS 'Number of cities',\n" +
+                      "AVG(city.Population) AS 'Average population',\n" +
+                      "(\n" +
+                      "    SELECT Name\n" +
+                      "    FROM city\n" +
+                      "    WHERE city.Province=pr.Name AND city.Country = pr.Country\n" +
+                      "    ORDER by city.Population DESC\n" +
+                      "    LIMIT 1\n" +
+                      ") as 'City with most citizens',\n" +
+                      "MAX(city.Population) AS 'Population in city'\n" +
+                      "FROM province AS pr\n" +
+                      "JOIN city ON pr.Name=city.Province AND pr.Country=city.Country\n" +
+                      "WHERE NOT EXISTS (\n" +
+                      "    SELECT c.name\n" +
+                      "    FROM city AS c\n" +
+                      "    WHERE c.Province=pr.Name AND c.Country=pr.Country AND (c.Population<300 OR c.Population IS NULL)\n" +
+                      ")\n" +
+                      "GROUP BY pr.name, pr.Population, pr.Country\n" +
+                      "ORDER BY AVG(city.Population) ASC";
         
         JTextArea textArea = new JTextArea(queryText);
         textArea.setEditable(false);
