@@ -10,17 +10,17 @@ import travel.*;
 
 /**
  * TravelMenu - Navigation interface for the Travel database queries
- * Standardized with green/black theme
+ * Standardized with blue/black theme
  */
 public class TravelMenu extends JFrame {
     private JPanel contentPane;
     
     // Color theme for Travel package
-    private static final Color DARK_GREEN = new Color(15, 60, 35);
-    private static final Color MEDIUM_GREEN = new Color(25, 123, 84);
-    private static final Color LIGHT_GREEN = new Color(70, 180, 130);
-    private static final Color VERY_LIGHT_GREEN = new Color(240, 255, 248);
-    private static final Color ACCENT_GREEN = new Color(30, 255, 144);
+    private static final Color DARK_BLUE = new Color(15, 35, 60);
+    private static final Color MEDIUM_BLUE = new Color(25, 84, 123);
+    private static final Color LIGHT_BLUE = new Color(70, 130, 180);
+    private static final Color VERY_LIGHT_BLUE = new Color(240, 248, 255);
+    private static final Color ACCENT_BLUE = new Color(30, 144, 255);
     
     /**
      * Launch the application.
@@ -61,8 +61,8 @@ public class TravelMenu extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, MEDIUM_GREEN,
-                                                  getWidth(), getHeight(), DARK_GREEN);
+                GradientPaint gp = new GradientPaint(0, 0, MEDIUM_BLUE,
+                                                  getWidth(), getHeight(), DARK_BLUE);
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
@@ -88,7 +88,7 @@ public class TravelMenu extends JFrame {
         
         JLabel lblSubtitle = new JLabel("Analyze hotel occupancy, excursions, and tour guide data");
         lblSubtitle.setHorizontalAlignment(SwingConstants.CENTER);
-        lblSubtitle.setForeground(new Color(200, 255, 230));
+        lblSubtitle.setForeground(new Color(200, 230, 255));
         lblSubtitle.setFont(new Font("Segoe UI", Font.ITALIC, 18));
         lblSubtitle.setBounds(10, 60, 864, 30);
         headerPanel.add(lblSubtitle);
@@ -196,11 +196,11 @@ public class TravelMenu extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 if (getModel().isPressed()) {
-                    g2.setColor(new Color(30, 255, 144)); // Pressed
+                    g2.setColor(new Color(30, 144, 255)); // Pressed
                 } else if (getModel().isRollover()) {
-                    g2.setColor(LIGHT_GREEN); // Hover
+                    g2.setColor(LIGHT_BLUE); // Hover
                 } else {
-                    g2.setColor(new Color(51, 153, 102)); // Normal
+                    g2.setColor(new Color(51, 102, 153)); // Normal
                 }
                 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15);
@@ -219,7 +219,7 @@ public class TravelMenu extends JFrame {
                 
                 // Draw description
                 g2.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-                g2.setColor(new Color(230, 255, 200));
+                g2.setColor(new Color(200, 230, 255));
                 
                 drawWrappedText(g2, description, 15, 50, getWidth() - 30);
                 
@@ -271,11 +271,11 @@ public class TravelMenu extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 if (getModel().isPressed()) {
-                    g2.setColor(new Color(30, 255, 144));
+                    g2.setColor(new Color(30, 144, 255));
                 } else if (getModel().isRollover()) {
-                    g2.setColor(LIGHT_GREEN);
+                    g2.setColor(LIGHT_BLUE);
                 } else {
-                    g2.setColor(new Color(51, 153, 102));
+                    g2.setColor(new Color(51, 102, 153));
                 }
                 
                 g2.fillRoundRect(0, 0, getWidth(), getHeight(), 10, 10);
