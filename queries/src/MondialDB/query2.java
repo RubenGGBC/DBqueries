@@ -24,9 +24,12 @@ public class query2 extends JFrame {
     private JButton executeQueryButton;
     private JButton showStatementButton;
     private JButton refreshDataButton;
-    private JButton exportButton;
     private JLabel statusLabel;
     private JPanel controlPanel;
+    
+    private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
+    private static final String USER = "DBI08";
+    private static final String PASS = "DBI08";
 
     public query2() {
         setTitle("GDP Comparison Across Borders");
@@ -77,7 +80,6 @@ public class query2 extends JFrame {
 
         refreshDataButton = createStyledButton("Refresh Data", new Color(176, 224, 230)); // Lighter blue
         refreshDataButton.addActionListener(this::executeQuery);
-
         
         // Status Label
         statusLabel = new JLabel("Ready to execute query", SwingConstants.CENTER);
@@ -101,7 +103,6 @@ public class query2 extends JFrame {
         controlPanel.add(executeQueryButton);
         controlPanel.add(showStatementButton);
         controlPanel.add(refreshDataButton);
-        controlPanel.add(exportButton);
         controlPanel.add(statusLabel);
         add(controlPanel, BorderLayout.SOUTH);
 
@@ -137,7 +138,7 @@ public class query2 extends JFrame {
                 "GROUP BY c.Name, enc.Continent, e.GDP, e.Inflation";
 
         try {
-            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/world_db", "username", "password");
+            Connection conn = DriverManager.getConnection(DB_URL, USER, PASS);
             PreparedStatement pstmt = conn.prepareStatement(query);
             ResultSet rs = pstmt.executeQuery();
 
@@ -213,13 +214,10 @@ public class query2 extends JFrame {
     private void adjustColumnWidths() {
         TableColumnModel columnModel = resultTable.getColumnModel();
         int[] columnWidths = {150, 100, 100, 100, 150};
-        for (int i = 0; i < columnModel.getColumnCount(); i++) {
+        for (int i = 0; i < columnModel.getColumnCount() && i < columnWidths.length; i++) {
             columnModel.getColumn(i).setPreferredWidth(columnWidths[i]);
         }
     }
-
-   
-   
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
