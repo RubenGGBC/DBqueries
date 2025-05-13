@@ -6,7 +6,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.geom.RoundRectangle2D;
 
-import queryes.QueryMenu;
 import employee.*;
 import travel.*;
 import MondialDB.*;

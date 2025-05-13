@@ -16,7 +16,6 @@ public class ProjectEmployeeHours extends JFrame {
     private JTextField txtProjectNumber;
     private JTextField txtHoursThreshold;
     private JButton btnConnect;
-    private JButton btnSearch;
     private JButton btnClear;
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
@@ -90,11 +89,19 @@ public class ProjectEmployeeHours extends JFrame {
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(0, 0));
         
+        // Header panel containing statement and parameters
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BorderLayout());
+        headerPanel.setBackground(VERY_LIGHT_BLUE);
+        headerPanel.setPreferredSize(new Dimension(900, 200)); // Height for both panels
+        contentPane.add(headerPanel, BorderLayout.NORTH);
+        
+        // Statement panel
         JPanel statementPanel = new JPanel();
         statementPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
         statementPanel.setBackground(MEDIUM_BLUE);
-        statementPanel.setPreferredSize(new Dimension(900, 100));
-        contentPane.add(statementPanel, BorderLayout.NORTH);
+        statementPanel.setPreferredSize(new Dimension(900, 120));
+        headerPanel.add(statementPanel, BorderLayout.NORTH);
         statementPanel.setLayout(new BorderLayout());
         
         JLabel titleLabel = new JLabel("Statement:");
@@ -121,46 +128,60 @@ public class ProjectEmployeeHours extends JFrame {
         
         JScrollPane statementScrollPane = new JScrollPane(txtStatement);
         statementScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        statementScrollPane.setPreferredSize(new Dimension(900, 80));
         statementPanel.add(statementScrollPane, BorderLayout.CENTER);
         
-        JPanel inputPanel = new JPanel();
-        inputPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
-        inputPanel.setBackground(LIGHT_BLUE);
-        inputPanel.setPreferredSize(new Dimension(900, 70));
-        contentPane.add(inputPanel, BorderLayout.NORTH);
-        statementPanel.add(inputPanel, BorderLayout.SOUTH);
-        inputPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        // Parameters panel with fixed labels and text fields
+        JPanel parametersPanel = new JPanel();
+        parametersPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
+        parametersPanel.setBackground(LIGHT_BLUE);
+        parametersPanel.setPreferredSize(new Dimension(900, 80));
+        headerPanel.add(parametersPanel, BorderLayout.CENTER);
         
-        JLabel lblProject = new JLabel("Project Number:");
-        lblProject.setFont(new Font("Arial", Font.BOLD, 14));
-        lblProject.setForeground(Color.WHITE);
-        inputPanel.add(lblProject);
+        // Use GridBagLayout for better control over component placement
+        parametersPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         
-        txtProjectNumber = new JTextField("30");  // Default value
+        // Project Number label
+        JLabel lblProjectNumber = new JLabel("Project Number:");
+        lblProjectNumber.setFont(new Font("Arial", Font.BOLD, 14));
+        lblProjectNumber.setForeground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.1;
+        parametersPanel.add(lblProjectNumber, gbc);
+        
+        // Project Number text field
+        txtProjectNumber = new JTextField("30");
         txtProjectNumber.setFont(new Font("Arial", Font.PLAIN, 14));
-        txtProjectNumber.setPreferredSize(new Dimension(60, 30));
-        inputPanel.add(txtProjectNumber);
+        txtProjectNumber.setBackground(Color.WHITE);
+        txtProjectNumber.setForeground(DARK_BLUE);
+        gbc.gridx = 1;
+        gbc.weightx = 0.3;
+        parametersPanel.add(txtProjectNumber, gbc);
         
-        JLabel lblHours = new JLabel("Hours Threshold:");
-        lblHours.setFont(new Font("Arial", Font.BOLD, 14));
-        lblHours.setForeground(Color.WHITE);
-        inputPanel.add(lblHours);
+        // Hours Threshold label
+        JLabel lblHoursThreshold = new JLabel("Hours Threshold:");
+        lblHoursThreshold.setFont(new Font("Arial", Font.BOLD, 14));
+        lblHoursThreshold.setForeground(Color.WHITE);
+        gbc.gridx = 2;
+        gbc.weightx = 0.1;
+        gbc.insets = new Insets(10, 30, 10, 5);
+        parametersPanel.add(lblHoursThreshold, gbc);
         
-        txtHoursThreshold = new JTextField("15");  // Default value
+        // Hours Threshold text field
+        txtHoursThreshold = new JTextField("15");
         txtHoursThreshold.setFont(new Font("Arial", Font.PLAIN, 14));
-        txtHoursThreshold.setPreferredSize(new Dimension(60, 30));
-        inputPanel.add(txtHoursThreshold);
+        txtHoursThreshold.setBackground(Color.WHITE);
+        txtHoursThreshold.setForeground(DARK_BLUE);
+        gbc.gridx = 3;
+        gbc.weightx = 0.3;
+        gbc.insets = new Insets(10, 5, 10, 20);
+        parametersPanel.add(txtHoursThreshold, gbc);
         
-        btnSearch = createStyledButton("Search", DARK_BLUE, Color.WHITE);
-        btnSearch.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                fetchData();
-            }
-        });
-        btnSearch.setEnabled(false);  // Will be enabled after connection
-        inputPanel.add(btnSearch);
-        
+        // Results panel
         JPanel resultsPanel = new JPanel();
         resultsPanel.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
         resultsPanel.setBackground(VERY_LIGHT_BLUE);
@@ -203,8 +224,8 @@ public class ProjectEmployeeHours extends JFrame {
         tableResults.setSelectionForeground(DARK_BLUE);
         
         JTableHeader header = tableResults.getTableHeader();
-        header.setBackground(MEDIUM_BLUE);
-        header.setForeground(Color.WHITE);
+        header.setBackground(Color.BLUE);
+        header.setForeground(Color.blue);
         header.setFont(new Font("Arial", Font.BOLD, 12));
         header.setBorder(BorderFactory.createLineBorder(DARK_BLUE, 1));
         header.setPreferredSize(new Dimension(header.getWidth(), 30)); 
@@ -277,19 +298,20 @@ public class ProjectEmployeeHours extends JFrame {
         contentPane.add(controlPanel, BorderLayout.SOUTH);
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));
         
-        txtStatus = new JTextField("Not connected to database");
+        txtStatus = new JTextField("Ready to connect and search");
         txtStatus.setEditable(false);
         txtStatus.setFont(new Font("Arial", Font.BOLD, 12));
         txtStatus.setForeground(DARK_BLUE);
         txtStatus.setBackground(VERY_LIGHT_BLUE);
-        txtStatus.setPreferredSize(new Dimension(200, 25));
+        txtStatus.setPreferredSize(new Dimension(300, 25));
         txtStatus.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE));
         controlPanel.add(txtStatus);
         
-        btnConnect = createStyledButton("Connect", DARK_BLUE, Color.WHITE);
+        btnConnect = createStyledButton("Connect & Search", DARK_BLUE, Color.WHITE);
+        btnConnect.setPreferredSize(new Dimension(150, 30));
         btnConnect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                connectToDatabase();
+                connectAndSearch();
             }
         });
         controlPanel.add(btnConnect);
@@ -335,119 +357,9 @@ public class ProjectEmployeeHours extends JFrame {
     }
     
     /**
-     * Show the SQL query in a popup window with the current parameter values
+     * Connect to database and fetch data in one step
      */
-    private void showSqlQuery() {
-        String projectNumber = txtProjectNumber.getText().trim();
-        String hoursThreshold = txtHoursThreshold.getText().trim();
-        
-        // Replace placeholder parameters with actual values for display
-        String formattedQuery = EMPLOYEE_HOURS_QUERY_TEMPLATE
-            .replaceAll("\\?", "\\{param\\}")
-            .replace("{param}", projectNumber)
-            .replace("{param}", projectNumber)
-            .replace("{param}", hoursThreshold)
-            .replace("{param}", projectNumber)
-            .replace("{param}", hoursThreshold)
-            .replace("{param}", projectNumber)
-            .replace("{param}", projectNumber)
-            .replace("{param}", hoursThreshold)
-            .replace("{param}", projectNumber)
-            .replace("{param}", hoursThreshold);
-        
-        JDialog dialog = new JDialog(this, "SQL Query", true);
-        dialog.setSize(800, 600);
-        dialog.setLocationRelativeTo(this);
-        
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        mainPanel.setBackground(VERY_LIGHT_BLUE);
-        
-        JTextArea txtQuery = new JTextArea(formattedQuery);
-        txtQuery.setFont(new Font("Monospaced", Font.PLAIN, 14));
-        txtQuery.setEditable(false);
-        txtQuery.setBackground(Color.WHITE);
-        txtQuery.setForeground(DARK_BLUE);
-        txtQuery.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE));
-        txtQuery.setMargin(new Insets(10, 10, 10, 10));
-        
-        JScrollPane scrollPane = new JScrollPane(txtQuery);
-        scrollPane.setBorder(BorderFactory.createLineBorder(DARK_BLUE));
-        mainPanel.add(scrollPane, BorderLayout.CENTER);
-        
-        JButton btnClose = createStyledButton("Close", DARK_BLUE, Color.WHITE);
-        btnClose.addActionListener(e -> dialog.dispose());
-        
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        buttonPanel.setBackground(VERY_LIGHT_BLUE);
-        buttonPanel.add(btnClose);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-        
-        dialog.setContentPane(mainPanel);
-        dialog.setVisible(true);
-    }
-    
-    /**
-     * Connect to database
-     */
-    private void connectToDatabase() {
-        txtStatus.setText("Connecting to database...");
-        
-        // Use SwingWorker to perform database operations in background
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            private boolean success = false;
-            
-            @Override
-            protected Void doInBackground() throws Exception {
-                Connection conn = null;
-                
-                try {
-                    Class.forName("com.mysql.cj.jdbc.Driver");
-                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                    success = true;
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    success = false;
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    success = false;
-                } finally {
-                    // Close resources
-                    try {
-                        if (conn != null) conn.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-                
-                return null;
-            }
-            
-            @Override
-            protected void done() {
-                if (success) {
-                    txtStatus.setText("Connected to database");
-                    btnSearch.setEnabled(true);
-                    btnConnect.setText("Reconnect");
-                    // Automatically perform initial search with default values
-                    fetchData();
-                } else {
-                    txtStatus.setText("Connection failed");
-                }
-            }
-        };
-        
-        worker.execute();
-    }
-    
-    
-    private void clearTable() {
-        tableModel.setRowCount(0);
-        txtStatus.setText("Results cleared");
-    }
-    
-  
-    private void fetchData() {
+    private void connectAndSearch() {
         String projectNumberStr = txtProjectNumber.getText().trim();
         String hoursThresholdStr = txtHoursThreshold.getText().trim();
         
@@ -474,7 +386,7 @@ public class ProjectEmployeeHours extends JFrame {
         
         // Clear existing data
         tableModel.setRowCount(0);
-        txtStatus.setText("Fetching data...");
+        txtStatus.setText("Connecting to database and fetching data...");
         
         // Use SwingWorker to perform database operations in background
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
@@ -488,8 +400,11 @@ public class ProjectEmployeeHours extends JFrame {
                 ResultSet rs = null;
                 
                 try {
+                    // First, try to connect to the database
                     Class.forName("com.mysql.cj.jdbc.Driver");
                     conn = DriverManager.getConnection(DB_URL, USER, PASS);
+                    
+                    // If connected successfully, execute the query
                     pstmt = conn.prepareStatement(EMPLOYEE_HOURS_QUERY_TEMPLATE);
                     
                     // Set all parameter values
@@ -546,16 +461,75 @@ public class ProjectEmployeeHours extends JFrame {
             protected void done() {
                 if (success) {
                     if (resultCount > 0) {
-                        txtStatus.setText("Found " + resultCount + " results");
+                        txtStatus.setText("Connected successfully. Found " + resultCount + " result(s) for Project=" + projectNumber + ", Hours=" + hoursThreshold);
                     } else {
-                        txtStatus.setText("No employees found matching criteria");
+                        txtStatus.setText("Connected successfully. No employees found for Project=" + projectNumber + " with Hours threshold=" + hoursThreshold);
                     }
+                    btnConnect.setText("Reconnect & Search");
                 } else {
-                    txtStatus.setText("Query failed");
+                    txtStatus.setText("Connection failed or query error");
                 }
             }
         };
         
         worker.execute();
+    }
+    
+    /**
+     * Show the SQL query in a popup window with the current parameter values
+     */
+    private void showSqlQuery() {
+        String projectNumber = txtProjectNumber.getText().trim();
+        String hoursThreshold = txtHoursThreshold.getText().trim();
+        
+        // Replace placeholder parameters with actual values for display
+        String formattedQuery = EMPLOYEE_HOURS_QUERY_TEMPLATE
+            .replaceAll("\\?", "\\{param\\}")
+            .replace("{param}", projectNumber)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold)
+            .replace("{param}", projectNumber)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold);
+        
+        JDialog dialog = new JDialog(this, "SQL Query", true);
+        dialog.setSize(800, 600);
+        dialog.setLocationRelativeTo(this);
+        
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        mainPanel.setBackground(VERY_LIGHT_BLUE);
+        
+        JTextArea txtQuery = new JTextArea(formattedQuery);
+        txtQuery.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        txtQuery.setEditable(false);
+        txtQuery.setBackground(Color.WHITE);
+        txtQuery.setForeground(DARK_BLUE);
+        txtQuery.setBorder(BorderFactory.createLineBorder(MEDIUM_BLUE));
+        txtQuery.setMargin(new Insets(10, 10, 10, 10));
+        
+        JScrollPane scrollPane = new JScrollPane(txtQuery);
+        scrollPane.setBorder(BorderFactory.createLineBorder(DARK_BLUE));
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        JButton btnClose = createStyledButton("Close", DARK_BLUE, Color.WHITE);
+        btnClose.addActionListener(e -> dialog.dispose());
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        buttonPanel.setBackground(VERY_LIGHT_BLUE);
+        buttonPanel.add(btnClose);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setContentPane(mainPanel);
+        dialog.setVisible(true);
+    }
+    
+    private void clearTable() {
+        tableModel.setRowCount(0);
+        txtStatus.setText("Results cleared");
     }
 }

@@ -130,7 +130,29 @@ public class TravelMenu extends JFrame {
         });
         buttonsPanel.add(btnTourGuideRevenue);
         
-        // Button 4: Return to Main Menu
+        // Button 4: Add Language
+        JButton btnAddLanguage = createStyledButton("Add Tour Guide Language", 
+            "Associate a new language with a tour guide", 
+            420, 30, 330, 140);
+        btnAddLanguage.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                openAddLanguage();
+            }
+        });
+        buttonsPanel.add(btnAddLanguage);
+        
+        // Button 5: Update Trip
+        JButton btnUpdateTrip = createStyledButton("Update Trip Details", 
+            "Modify price and guide information for existing trips", 
+            50, 210, 330, 140);
+        btnUpdateTrip.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                openUpdateTrip();
+            }
+        });
+        buttonsPanel.add(btnUpdateTrip);
+        
+        // Button 6: Return to Main Menu
         JButton btnMainMenu = createStyledButton("Return to Main Menu", 
             "Go back to the main navigation menu", 
             420, 210, 330, 140);
@@ -258,6 +280,22 @@ public class TravelMenu extends JFrame {
      */
     private void openTourGuideRevenue() {
         TourGuideRevenueViewer frame = new TourGuideRevenueViewer();
+        frame.setVisible(true);
+    }
+    
+    /**
+     * Open Add Language form
+     */
+    private void openAddLanguage() {
+    	AddLanguage frame = new AddLanguage();
+        frame.setVisible(true);
+    }
+    
+    /**
+     * Open Update Trip form
+     */
+    private void openUpdateTrip() {
+        UpdateTrip frame = new UpdateTrip();
         frame.setVisible(true);
     }
     
