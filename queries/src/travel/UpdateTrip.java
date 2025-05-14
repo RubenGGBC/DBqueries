@@ -10,6 +10,7 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Vector;
 
 public class UpdateTrip extends JFrame {
     private JPanel contentPane;
@@ -22,6 +23,9 @@ public class UpdateTrip extends JFrame {
     private JButton btnClear;
     private JButton btnExit;
     private JButton btnSearch;
+    private JTable tblTrips;
+    private JScrollPane scrollPane;
+    private DefaultTableModel tableModel;
     
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
@@ -61,7 +65,7 @@ public class UpdateTrip extends JFrame {
     public UpdateTrip() {
         setTitle("Update Trip Details");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setBounds(100, 100, 800, 600);
+        setBounds(100, 100, 1000, 800); // Increased size to accommodate table
         setLocationRelativeTo(null);
         
         // Main panel with gradient background
@@ -84,7 +88,7 @@ public class UpdateTrip extends JFrame {
         // Header panel
         JPanel panelHeader = new JPanel();
         panelHeader.setOpaque(false);
-        panelHeader.setPreferredSize(new Dimension(800, 100));
+        panelHeader.setPreferredSize(new Dimension(1000, 100));
         contentPane.add(panelHeader, BorderLayout.NORTH);
         panelHeader.setLayout(null);
         
@@ -92,14 +96,14 @@ public class UpdateTrip extends JFrame {
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setForeground(Color.WHITE);
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
-        lblTitle.setBounds(10, 11, 764, 42);
+        lblTitle.setBounds(10, 11, 964, 42);
         panelHeader.add(lblTitle);
         
         JLabel lblSubtitle = new JLabel("Modify price and guide information for existing trips");
         lblSubtitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblSubtitle.setForeground(new Color(200, 230, 255));
         lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 16));
-        lblSubtitle.setBounds(10, 50, 764, 30);
+        lblSubtitle.setBounds(10, 50, 964, 30);
         panelHeader.add(lblSubtitle);
         
         // Form panel
@@ -118,7 +122,7 @@ public class UpdateTrip extends JFrame {
                 TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 14),
                 Color.WHITE));
-        identificationPanel.setBounds(50, 20, 700, 120);
+        identificationPanel.setBounds(50, 20, 900, 120);
         panelForm.add(identificationPanel);
         identificationPanel.setLayout(null);
         
@@ -158,6 +162,16 @@ public class UpdateTrip extends JFrame {
         });
         identificationPanel.add(btnSearch);
         
+        // Load data button
+        JButton btnLoadData = createStyledButton("Load All Trips");
+        btnLoadData.setBounds(450, 70, 150, 35);
+        btnLoadData.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                loadAllTrips();
+            }
+        });
+        identificationPanel.add(btnLoadData);
+        
         // Update Fields Panel
         JPanel updatePanel = new JPanel();
         updatePanel.setOpaque(false);
@@ -168,7 +182,7 @@ public class UpdateTrip extends JFrame {
                 TitledBorder.TOP,
                 new Font("Segoe UI", Font.BOLD, 14),
                 Color.WHITE));
-        updatePanel.setBounds(50, 150, 700, 150);
+        updatePanel.setBounds(50, 150, 900, 150);
         panelForm.add(updatePanel);
         updatePanel.setLayout(null);
         
@@ -205,26 +219,96 @@ public class UpdateTrip extends JFrame {
         lblHelp.setBounds(20, 90, 660, 40);
         updatePanel.add(lblHelp);
         
-        // Information panel
-        JPanel infoPanel = new JPanel();
-        infoPanel.setBackground(new Color(70, 130, 180, 120));
-        infoPanel.setBounds(50, 320, 700, 80);
-        infoPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 100)));
-        panelForm.add(infoPanel);
-        infoPanel.setLayout(new BorderLayout());
+        // Table Panel
+        JPanel tablePanel = new JPanel();
+        tablePanel.setOpaque(false);
+        tablePanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(255, 255, 255, 150), 1),
+                "Trip Database",
+                TitledBorder.LEFT,
+                TitledBorder.TOP,
+                new Font("Segoe UI", Font.BOLD, 14),
+                Color.WHITE));
+        tablePanel.setBounds(50, 320, 900, 330);
+        panelForm.add(tablePanel);
+        tablePanel.setLayout(new BorderLayout());
         
-        JLabel lblInfo = new JLabel("<html>First search for an existing trip using 'Trip To' destination and 'Departure Date'. " +
-                "Once found, enter the new price per day and/or new guide ID to update the trip details. " +
-                "Both the trip destination and departure date must be entered to identify the trip.</html>");
-        lblInfo.setForeground(Color.WHITE);
-        lblInfo.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-        lblInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        infoPanel.add(lblInfo, BorderLayout.CENTER);
+        // Create table model with column names
+        tableModel = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false; // Make table non-editable
+            }
+        };
+        tableModel.addColumn("Trip To");
+        tableModel.addColumn("Departure Date");
+        tableModel.addColumn("Return Date");
+        tableModel.addColumn("Price/Day ($)");
+        tableModel.addColumn("Guide ID");
+        tableModel.addColumn("Trip Type");
+        
+        // Create and configure the table
+        tblTrips = new JTable(tableModel);
+        tblTrips.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        tblTrips.setRowHeight(25);
+        tblTrips.setShowGrid(true);
+        tblTrips.setGridColor(new Color(200, 200, 200));
+        tblTrips.setSelectionBackground(new Color(70, 130, 180));
+        tblTrips.setSelectionForeground(Color.WHITE);
+        tblTrips.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
+        tblTrips.getTableHeader().setBackground(new Color(51, 102, 153));
+        tblTrips.getTableHeader().setForeground(Color.WHITE);
+        
+        // Add row selection listener to populate fields when a row is selected
+        tblTrips.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && tblTrips.getSelectedRow() != -1) {
+                int row = tblTrips.getSelectedRow();
+                txtTripTo.setText(tblTrips.getValueAt(row, 0).toString());
+                txtDepartureDate.setText(tblTrips.getValueAt(row, 1).toString());
+                
+                // Store current values
+                currentPrice = Double.parseDouble(tblTrips.getValueAt(row, 3).toString().replace("$", "").replace(",", ""));
+                currentGuideId = Integer.parseInt(tblTrips.getValueAt(row, 4).toString());
+                
+                // Set tooltips
+                NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+                txtNewPrice.setToolTipText("Current: " + currencyFormat.format(currentPrice));
+                txtNewGuideId.setToolTipText("Current: " + currentGuideId);
+                
+                tripFound = true;
+                btnUpdate.setEnabled(true);
+                txtStatus.setText("Trip selected. Ready to update.");
+                txtStatus.setForeground(new Color(200, 255, 200));
+            }
+        });
+        
+        // Create scroll pane for the table
+        scrollPane = new JScrollPane(tblTrips);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        
+        // Style the scroll bars
+        scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(70, 130, 180);
+                this.trackColor = new Color(25, 84, 123);
+            }
+        });
+        
+        scrollPane.getHorizontalScrollBar().setUI(new BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = new Color(70, 130, 180);
+                this.trackColor = new Color(25, 84, 123);
+            }
+        });
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
         
         // Footer panel with controls
         JPanel panelFooter = new JPanel();
         panelFooter.setOpaque(false);
-        panelFooter.setPreferredSize(new Dimension(800, 100));
+        panelFooter.setPreferredSize(new Dimension(1000, 100));
         contentPane.add(panelFooter, BorderLayout.SOUTH);
         panelFooter.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
         
@@ -266,6 +350,9 @@ public class UpdateTrip extends JFrame {
             }
         });
         panelFooter.add(btnExit);
+        
+        // Load all trips when the application starts
+        loadAllTrips();
     }
     
     /**
@@ -318,6 +405,78 @@ public class UpdateTrip extends JFrame {
     }
     
     /**
+     * Load all trips from the database into the table
+     */
+    private void loadAllTrips() {
+        // Update status
+        txtStatus.setText("Loading trips...");
+        
+        // Clear the table
+        tableModel.setRowCount(0);
+        
+        // Use SwingWorker to perform database operations in background
+        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() throws Exception {
+                Connection conn = null;
+                Statement stmt = null;
+                ResultSet rs = null;
+                
+                try {
+                    // Connect to database
+                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
+                    
+                    // Query all trips
+                    String query = "SELECT TripTo, DepartureDate, ReturnDate, PpDay, GuideId, TripType FROM trip";
+                    stmt = conn.createStatement();
+                    rs = stmt.executeQuery(query);
+                    
+                    // Format for currency
+                    NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
+                    
+                    // Add rows to the table
+                    while (rs.next()) {
+                        Vector<Object> row = new Vector<>();
+                        row.add(rs.getString("TripTo"));
+                        row.add(rs.getString("DepartureDate"));
+                        row.add(rs.getString("ReturnDate"));
+                        row.add(currencyFormat.format(rs.getDouble("PpDay")));
+                        row.add(rs.getInt("GuideId"));
+                        row.add(rs.getString("TripType"));
+                        tableModel.addRow(row);
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(UpdateTrip.this,
+                                "Error loading trips: " + e.getMessage(),
+                                "Database Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    });
+                } finally {
+                    try {
+                        if (rs != null) rs.close();
+                        if (stmt != null) stmt.close();
+                        if (conn != null) conn.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+                
+                return null;
+            }
+            
+            @Override
+            protected void done() {
+                txtStatus.setText("Trips loaded. " + tableModel.getRowCount() + " trips found.");
+                txtStatus.setForeground(new Color(200, 255, 200));
+            }
+        };
+        
+        worker.execute();
+    }
+    
+    /**
      * Clear the form fields
      */
     private void clearForm() {
@@ -329,6 +488,9 @@ public class UpdateTrip extends JFrame {
         txtStatus.setForeground(new Color(200, 255, 200));
         btnUpdate.setEnabled(false);
         tripFound = false;
+        
+        // Clear table selection
+        tblTrips.clearSelection();
     }
     
     /**
@@ -354,6 +516,7 @@ public class UpdateTrip extends JFrame {
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private boolean success = false;
             private String errorMessage = "";
+            private int foundRow = -1;
             
             @Override
             protected Void doInBackground() throws Exception {
@@ -377,6 +540,15 @@ public class UpdateTrip extends JFrame {
                         currentGuideId = rs.getInt("GuideId");
                         success = true;
                         tripFound = true;
+                        
+                        // Try to find the row in the table
+                        for (int i = 0; i < tableModel.getRowCount(); i++) {
+                            if (tableModel.getValueAt(i, 0).equals(tripTo) && 
+                                tableModel.getValueAt(i, 1).equals(departureDate)) {
+                                foundRow = i;
+                                break;
+                            }
+                        }
                     } else {
                         errorMessage = "Trip not found. Please check the destination and departure date.";
                         success = false;
@@ -416,6 +588,12 @@ public class UpdateTrip extends JFrame {
                     
                     btnUpdate.setEnabled(true);
                     
+                    // Select the row in the table if found
+                    if (foundRow != -1) {
+                        tblTrips.setRowSelectionInterval(foundRow, foundRow);
+                        tblTrips.scrollRectToVisible(tblTrips.getCellRect(foundRow, 0, true));
+                    }
+                    
                     JOptionPane.showMessageDialog(UpdateTrip.this,
                         "Trip found!\nCurrent Price Per Day: " + currencyFormat.format(currentPrice) + 
                         "\nCurrent Guide ID: " + currentGuideId,
@@ -449,15 +627,63 @@ public class UpdateTrip extends JFrame {
             return;
         }
         
+        // Get new values from fields
+        String newPriceText = txtNewPrice.getText().trim();
+        String newGuideIdText = txtNewGuideId.getText().trim();
         
+        // Validate that at least one field has a value
+        if (newPriceText.isEmpty() && newGuideIdText.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "At least one field (Price or Guide ID) must be filled to update.", 
+                "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         
+        // Parse and validate input values
         Double newPrice = null;
-        
         Integer newGuideId = null;
         
+        try {
+            if (!newPriceText.isEmpty()) {
+                newPrice = Double.parseDouble(newPriceText);
+                if (newPrice <= 0) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Price must be a positive number.", 
+                        "Validation Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Invalid price format. Please enter a valid number.", 
+                "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
         
-        final Double finalNewPrice = newPrice;
-        final Integer finalNewGuideId = newGuideId;
+        try {
+            if (!newGuideIdText.isEmpty()) {
+                newGuideId = Integer.parseInt(newGuideIdText);
+                if (newGuideId <= 0) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Guide ID must be a positive number.", 
+                        "Validation Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+            }
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Invalid Guide ID format. Please enter a valid number.", 
+                "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        final Double finalNewPrice = newPrice != null ? newPrice : currentPrice;
+        final Integer finalNewGuideId = newGuideId != null ? newGuideId : currentGuideId;
         
         // Update status
         txtStatus.setText("Updating trip...");
@@ -476,30 +702,39 @@ public class UpdateTrip extends JFrame {
                     // Connect to database
                     conn = DriverManager.getConnection(DB_URL, USER, PASS);
                     
-                    // Prepare update query based on which fields are being updated
-                    StringBuilder queryBuilder = new StringBuilder("UPDATE trip SET WHERE TripTo = ? AND DepartureDate = ?");
-                          
+                    // Set auto-commit to false for transaction
+                    conn.setAutoCommit(false);
+                    
+                    // Prepare update query
                     pstmt = conn.prepareStatement("UPDATE trip SET Ppday = ?, GuideId = ? WHERE TripTo = ? AND DepartureDate = ?");
                     
-                    pstmt.setDouble(1, finalNewPrice);                   
-                    
-                    pstmt.setInt(2, finalNewGuideId);      
-                    
+                    pstmt.setDouble(1, finalNewPrice);
+                    pstmt.setInt(2, finalNewGuideId);
                     pstmt.setString(3, txtTripTo.getText().trim());
                     pstmt.setString(4, txtDepartureDate.getText().trim());
                     
-                    pstmt.executeUpdate();
+                    int rowsAffected = pstmt.executeUpdate();
                     
+                    if (rowsAffected > 0) {
+                        conn.commit();
+                        success = true;
+                    } else {
+                        conn.rollback();
+                        errorMessage = "No rows were updated. Trip may no longer exist.";
+                        success = false;
+                    }
                 } catch (SQLException e) {
-                	conn.rollback();
+                    try {
+                        if (conn != null) conn.rollback();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                    }
                     e.printStackTrace();
-                    JOptionPane.showMessageDialog(UpdateTrip.this,
-                            "Rollback has been done. Either the guideId is not in the list of tourguides or the introduced combination is already in the language table.",
-                            "Database Error",
-                            JOptionPane.ERROR_MESSAGE);
+                    errorMessage = "Error: " + e.getMessage();
                     success = false;
                 } finally {
                     try {
+                        if (conn != null) conn.setAutoCommit(true);
                         if (pstmt != null) pstmt.close();
                         if (conn != null) conn.close();
                     } catch (SQLException e) {
@@ -522,15 +757,10 @@ public class UpdateTrip extends JFrame {
                         JOptionPane.INFORMATION_MESSAGE);
                     
                     // Update current values
-                    if (finalNewPrice != null) {
-                        currentPrice = finalNewPrice;
-                    }
+                    currentPrice = finalNewPrice;
+                    currentGuideId = finalNewGuideId;
                     
-                    if (finalNewGuideId != null) {
-                        currentGuideId = finalNewGuideId;
-                    }
-                    
-                    // Clear the fields but keep the trip search fields
+                    // Clear the input fields but keep the trip search fields
                     txtNewPrice.setText("");
                     txtNewGuideId.setText("");
                     
@@ -538,6 +768,9 @@ public class UpdateTrip extends JFrame {
                     NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
                     txtNewPrice.setToolTipText("Current: " + currencyFormat.format(currentPrice));
                     txtNewGuideId.setToolTipText("Current: " + currentGuideId);
+                    
+                    // Refresh the table to show updated data
+                    loadAllTrips();
                 } else {
                     txtStatus.setText("Update failed");
                     txtStatus.setForeground(new Color(255, 150, 150));

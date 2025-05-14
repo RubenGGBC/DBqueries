@@ -8,11 +8,11 @@ import javax.swing.table.*;
 import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.plaf.basic.BasicScrollBarUI;
-import java.util.Scanner;
+import java.util.Vector;
 
 /**
  * Modernized graphical interface for adding a new employee
- * Replaces the console-based implementation
+ * With database table showing current employees
  */
 public class addEmployee extends JFrame {
     private JPanel contentPane;
@@ -24,7 +24,10 @@ public class addEmployee extends JFrame {
     private JButton btnAdd;
     private JButton btnClear;
     private JButton btnShowDepartments;
+    private JButton btnRefresh;
     private JButton btnExit;
+    private JTable employeesTable;
+    private DefaultTableModel employeesTableModel;
     
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
@@ -66,7 +69,7 @@ public class addEmployee extends JFrame {
     public addEmployee() {
         setTitle("Add New Employee");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 700, 500);
+        setBounds(100, 100, 900, 700);
         setLocationRelativeTo(null);
         
         // Create gradient panel
@@ -89,7 +92,7 @@ public class addEmployee extends JFrame {
         // Header panel
         JPanel headerPanel = new JPanel();
         headerPanel.setOpaque(false);
-        headerPanel.setPreferredSize(new Dimension(700, 80));
+        headerPanel.setPreferredSize(new Dimension(900, 80));
         headerPanel.setLayout(new BorderLayout());
         
         JLabel titleLabel = new JLabel("Add New Employee");
@@ -106,11 +109,18 @@ public class addEmployee extends JFrame {
         
         contentPane.add(headerPanel, BorderLayout.NORTH);
         
+        // Main split pane to divide form and table
+        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPane.setDividerLocation(250);
+        splitPane.setOpaque(false);
+        splitPane.setBorder(null);
+        contentPane.add(splitPane, BorderLayout.CENTER);
+        
         // Form panel
         JPanel formPanel = new JPanel();
         formPanel.setOpaque(false);
-        contentPane.add(formPanel, BorderLayout.CENTER);
         formPanel.setLayout(null);
+        splitPane.setTopComponent(formPanel);
         
         // First Name
         JLabel lblFname = new JLabel("First Name:");
@@ -172,28 +182,117 @@ public class addEmployee extends JFrame {
         txtDno.setBorder(BorderFactory.createLineBorder(MEDIUM_GREEN));
         formPanel.add(txtDno);
         
-        // Information panel
-        JPanel infoPanel = new JPanel();
-        infoPanel.setBackground(new Color(46, 125, 50, 120));
-        infoPanel.setBounds(150, 200, 350, 100);
-        infoPanel.setBorder(BorderFactory.createLineBorder(new Color(255, 255, 255, 100)));
-        formPanel.add(infoPanel);
-        infoPanel.setLayout(new BorderLayout());
+        // Form Buttons
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
+        buttonPanel.setBounds(140, 190, 460, 50);
+        formPanel.add(buttonPanel);
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
         
-        JLabel lblInfo = new JLabel("<html><div style='text-align: center; margin: 10px;'>" + 
-                "<b>Instructions:</b><br/>" +
-                "Add a new employee to the database. All fields are required.<br/><br/>" +
-                "Press 'Show Departments' to see a list of available departments." +
-                "</div></html>");
-        lblInfo.setForeground(Color.WHITE);
-        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        lblInfo.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        infoPanel.add(lblInfo, BorderLayout.CENTER);
+        // Add button
+        btnAdd = createStyledButton("Add Employee");
+        btnAdd.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                addEmployeeToDatabase();
+            }
+        });
+        buttonPanel.add(btnAdd);
         
-        // Footer panel
+        // Show Departments button
+        btnShowDepartments = createStyledButton("Show Departments");
+        btnShowDepartments.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                showDepartments();
+            }
+        });
+        buttonPanel.add(btnShowDepartments);
+        
+        // Clear button
+        btnClear = createStyledButton("Clear Form");
+        btnClear.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                clearForm();
+            }
+        });
+        buttonPanel.add(btnClear);
+        
+        // Employees database table panel
+        JPanel tablePanel = new JPanel();
+        tablePanel.setBackground(VERY_LIGHT_GREEN);
+        tablePanel.setBorder(BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(DARK_GREEN, 1),
+            "Current Employees Database",
+            TitledBorder.LEFT,
+            TitledBorder.TOP,
+            new Font("Segoe UI", Font.BOLD, 14),
+            DARK_GREEN
+        ));
+        tablePanel.setLayout(new BorderLayout(0, 0));
+        splitPane.setBottomComponent(tablePanel);
+        
+        // Create table for employees
+        String[] columnNames = {"SSN", "First Name", "Last Name", "Sex", "Salary", "Department", "Supervisor"};
+        employeesTableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+            
+            @Override
+            public Class<?> getColumnClass(int columnIndex) {
+                if (columnIndex == 4) return Double.class; // Salary column
+                return String.class;
+            }
+        };
+        
+        employeesTable = new JTable(employeesTableModel);
+        employeesTable.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        employeesTable.setRowHeight(25);
+        employeesTable.setGridColor(LIGHT_GREEN);
+        
+        // Header styling
+        JTableHeader header = employeesTable.getTableHeader();
+        header.setBackground(MEDIUM_GREEN);
+        header.setForeground(Color.green.darker());
+        header.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        
+        // Set alternating row colors
+        employeesTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+                if (isSelected) {
+                    c.setBackground(LIGHT_GREEN);
+                    c.setForeground(DARK_GREEN);
+                } else {
+                    c.setBackground(row % 2 == 0 ? VERY_LIGHT_GREEN : Color.WHITE);
+                    c.setForeground(TEXT_COLOR);
+                }
+
+                return c;
+            }
+        });
+        
+        // Create scrollpane and style scrollbars
+        JScrollPane scrollPane = new JScrollPane(employeesTable);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        
+        scrollPane.getVerticalScrollBar().setUI(new BasicScrollBarUI() {
+            @Override
+            protected void configureScrollBarColors() {
+                this.thumbColor = MEDIUM_GREEN;
+                this.trackColor = VERY_LIGHT_GREEN;
+            }
+        });
+        
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Footer panel with controls
         JPanel footerPanel = new JPanel();
         footerPanel.setOpaque(false);
-        footerPanel.setPreferredSize(new Dimension(700, 100));
+        footerPanel.setPreferredSize(new Dimension(900, 100));
         contentPane.add(footerPanel, BorderLayout.SOUTH);
         footerPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
         
@@ -205,35 +304,17 @@ public class addEmployee extends JFrame {
         txtStatus.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtStatus.setBorder(null);
         txtStatus.setHorizontalAlignment(SwingConstants.CENTER);
-        txtStatus.setPreferredSize(new Dimension(200, 35));
+        txtStatus.setPreferredSize(new Dimension(250, 35));
         footerPanel.add(txtStatus);
         
-        // Add button
-        btnAdd = createStyledButton("Add Employee");
-        btnAdd.addActionListener(new ActionListener() {
+        // Refresh button
+        btnRefresh = createStyledButton("Refresh Data");
+        btnRefresh.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                addEmployeeToDatabase();
+                loadEmployeesData();
             }
         });
-        footerPanel.add(btnAdd);
-        
-        // Show Departments button
-        btnShowDepartments = createStyledButton("Show Departments");
-        btnShowDepartments.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                showDepartments();
-            }
-        });
-        footerPanel.add(btnShowDepartments);
-        
-        // Clear button
-        btnClear = createStyledButton("Clear Form");
-        btnClear.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                clearForm();
-            }
-        });
-        footerPanel.add(btnClear);
+        footerPanel.add(btnRefresh);
         
         // Exit button
         btnExit = createStyledButton("Exit");
@@ -243,10 +324,13 @@ public class addEmployee extends JFrame {
             }
         });
         footerPanel.add(btnExit);
+        
+        // Load initial employee data
+        loadEmployeesData();
     }
     
     /**
-     * Create a styled button
+     * Creates a styled button
      */
     private JButton createStyledButton(String text) {
         JButton button = new JButton() {
@@ -293,6 +377,66 @@ public class addEmployee extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
         return button;
+    }
+    
+    /**
+     * Load employees data from database
+     */
+    private void loadEmployeesData() {
+        txtStatus.setText("Loading employees data...");
+        
+        // Clear existing data
+        employeesTableModel.setRowCount(0);
+        
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            stmt = conn.createStatement();
+            
+            // Query to get employee details with department and supervisor info
+            String sql = "SELECT e.Ssn, e.Fname, e.Lname, e.Sex, e.Salary, d.Dname, " +
+                        "(SELECT CONCAT(s.Fname, ' ', s.Lname) FROM employee s WHERE s.Ssn = e.Super_ssn) AS Supervisor " +
+                        "FROM employee e " +
+                        "LEFT JOIN department d ON e.Dno = d.Dnumber " +
+                        "ORDER BY e.Lname, e.Fname";
+            
+            rs = stmt.executeQuery(sql);
+            
+            while (rs.next()) {
+                String ssn = rs.getString("Ssn");
+                String fname = rs.getString("Fname");
+                String lname = rs.getString("Lname");
+                String sex = rs.getString("Sex");
+                double salary = rs.getDouble("Salary");
+                String deptName = rs.getString("Dname");
+                String supervisor = rs.getString("Supervisor");
+                
+                employeesTableModel.addRow(new Object[] {
+                    ssn, fname, lname, sex, salary, deptName, supervisor
+                });
+            }
+            
+            txtStatus.setText("Employees data loaded successfully");
+            
+        } catch (Exception e) {
+            txtStatus.setText("Error loading employees data");
+            JOptionPane.showMessageDialog(this, 
+                "Error loading employees data: " + e.getMessage(), 
+                "Database Error", 
+                JOptionPane.ERROR_MESSAGE);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (stmt != null) stmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
     
     /**
@@ -355,7 +499,7 @@ public class addEmployee extends JFrame {
                     // Set header style
                     JTableHeader header = departmentsTable.getTableHeader();
                     header.setBackground(MEDIUM_GREEN);
-                    header.setForeground(Color.WHITE);
+                    header.setForeground(Color.green.darker());
                     header.setFont(new Font("Segoe UI", Font.BOLD, 14));
                     
                     // Add selection listener
@@ -430,64 +574,82 @@ public class addEmployee extends JFrame {
             return;
         }
         
+        // Validate input
+        if (fname.isEmpty() || lname.isEmpty() || ssn.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "Please fill in all required fields.", 
+                "Validation Error", 
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         // Update status
         txtStatus.setText("Adding employee...");
           
-                Connection conn = null;
-                PreparedStatement pstmt = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
                 
-                try {
+        try {
                     
-                	Class.forName("com.mysql.cj.jdbc.Driver");
-                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                    
-                    // Disable auto-commit for transaction
-                    conn.setAutoCommit(false);
-                    
-                    // Add employee
-                    pstmt = conn.prepareStatement(
-                        "INSERT INTO employee" +
-                        "VALUES (?, NULL, ?, ?, NULL, NULL, NULL, NULL, NULL, ?)"
-                    );
-                    pstmt.setString(1, fname);
-                    pstmt.setString(2, lname);
-                    pstmt.setString(3, ssn);
-                    pstmt.setInt(4, dno);
-                    
-                    pstmt.executeUpdate();
-                    
-                    // Commit transaction
-                    conn.commit();
-                    
-                    JOptionPane.showMessageDialog(this, 
-                            "Record added successfully", 
-                            "Success", 
-                            JOptionPane.INFORMATION_MESSAGE);
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
+            
+            // Disable auto-commit for transaction
+            conn.setAutoCommit(false);
+            
+            // Add employee
+            pstmt = conn.prepareStatement(
+                "INSERT INTO employee (Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno) " +
+                "VALUES (?, NULL, ?, ?, NULL, NULL, 'M', 30000, NULL, ?)"
+            );
+            pstmt.setString(1, fname);
+            pstmt.setString(2, lname);
+            pstmt.setString(3, ssn);
+            pstmt.setInt(4, dno);
+            
+            pstmt.executeUpdate();
+            
+            // Commit transaction
+            conn.commit();
+            
+            JOptionPane.showMessageDialog(this, 
+                    "Employee added successfully", 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            
+            // Clear form
+            clearForm();
+            
+            // Refresh table to show new employee
+            loadEmployeesData();
         
-                } catch (SQLException | ClassNotFoundException e) {
-                    try {
-                        // Rollback the transaction
-                        conn.rollback();
-                        
-                        JOptionPane.showMessageDialog(this, 
-                            "Rollback has been done. " + e.getMessage(), 
-                            "Database Error", 
-                            JOptionPane.ERROR_MESSAGE);
-                      
-                    } catch (SQLException ex) {
-                        JOptionPane.showMessageDialog(this, 
-                            "Error during rollback: " + ex.getMessage(), 
-                            "Database Error", 
-                            JOptionPane.ERROR_MESSAGE);
-                    }
-                } finally {
-                    // Close resources
-                    try {
-                        if (pstmt != null) pstmt.close();
-                        if (conn != null) conn.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
+        } catch (SQLException | ClassNotFoundException e) {
+            try {
+                // Rollback the transaction
+                if (conn != null) {
+                    conn.rollback();
                 }
+                
+                JOptionPane.showMessageDialog(this, 
+                    "Rollback has been done. " + e.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                      
+                txtStatus.setText("Error - Transaction rolled back");
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, 
+                    "Error during rollback: " + ex.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
             }
+        } finally {
+            // Close resources
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

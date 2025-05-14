@@ -333,12 +333,6 @@ public class EmployeeMenu extends JFrame {
      * Open the addEmployee
      */
     private void openAddEmployee() {
-        // Since addEmployee doesn't have a GUI yet, show a message
-        JOptionPane.showMessageDialog(this,
-            "This would open the Add Employee form.\nThe implementation is currently console-based.",
-            "Information",
-            JOptionPane.INFORMATION_MESSAGE);
-            
         addEmployee frame = new addEmployee();
          frame.setVisible(true);
     }

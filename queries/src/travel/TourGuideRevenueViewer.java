@@ -184,7 +184,7 @@ public class TourGuideRevenueViewer extends JFrame {
         tableResults.setShowVerticalLines(false);
         tableResults.setGridColor(new Color(230, 240, 250));
         tableResults.setSelectionBackground(LIGHT_BLUE);
-        tableResults.setSelectionForeground(Color.blue);
+        tableResults.setSelectionForeground(Color.white);
         
         // Format revenue column as currency
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);

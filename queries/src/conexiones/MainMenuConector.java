@@ -9,6 +9,7 @@ import java.awt.geom.RoundRectangle2D;
 import employee.*;
 import travel.*;
 import MondialDB.*;
+import Restaurant.*;
 
 
 public class MainMenuConector extends JFrame {
@@ -131,7 +132,15 @@ public class MainMenuConector extends JFrame {
         });
         navPanel.add(btnTravel);
         
-      
+        // Restaurant Database button
+        JButton btnRestaurant = createStyledButton("Restaurant Database", "Manage restaurant orders, menus, and customer preferences", 420, 210, 330, 140);
+        btnRestaurant.setIcon(createIcon("restaurant"));
+        btnRestaurant.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                openRestaurantMenu();
+            }
+        });
+        navPanel.add(btnRestaurant);
         
         // Footer panel
         JPanel footerPanel = new JPanel();
@@ -231,7 +240,7 @@ public class MainMenuConector extends JFrame {
     
    
     private ImageIcon createIcon(String type) {
-   
+        // This method is kept as a placeholder for potential future icon implementation
         return null;
     }
     
@@ -262,5 +271,12 @@ public class MainMenuConector extends JFrame {
         this.setVisible(false);
     }
     
-  
+    /**
+     * Opens the Restaurant menu
+     */
+    private void openRestaurantMenu() {
+        RestaurantMenu menu = new RestaurantMenu();
+        menu.setVisible(true);
+        this.setVisible(false);
+    }
 }
