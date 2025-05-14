@@ -449,56 +449,12 @@ public class UpdateTrip extends JFrame {
             return;
         }
         
-        // Check if at least one field has a new value
-        if (txtNewPrice.getText().trim().isEmpty() && txtNewGuideId.getText().trim().isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please enter at least one field to update (price or guide ID).", 
-                "Validation Error", 
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
         
-        // Validate new price if provided
+        
         Double newPrice = null;
-        if (!txtNewPrice.getText().trim().isEmpty()) {
-            try {
-                newPrice = Double.parseDouble(txtNewPrice.getText().trim());
-                if (newPrice <= 0) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Price must be a positive number.", 
-                        "Validation Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Price must be a valid number.", 
-                    "Validation Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
         
-        // Validate new guide ID if provided
         Integer newGuideId = null;
-        if (!txtNewGuideId.getText().trim().isEmpty()) {
-            try {
-                newGuideId = Integer.parseInt(txtNewGuideId.getText().trim());
-                if (newGuideId <= 0) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Guide ID must be a positive number.", 
-                        "Validation Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Guide ID must be a valid number.", 
-                    "Validation Error", 
-                    JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-        }
+        
         
         final Double finalNewPrice = newPrice;
         final Integer finalNewGuideId = newGuideId;
@@ -520,65 +476,27 @@ public class UpdateTrip extends JFrame {
                     // Connect to database
                     conn = DriverManager.getConnection(DB_URL, USER, PASS);
                     
-                    // If updating guide ID, check if it exists
-                    if (finalNewGuideId != null) {
-                        pstmt = conn.prepareStatement("SELECT COUNT(*) FROM tourguide WHERE GuideId = ?");
-                        pstmt.setInt(1, finalNewGuideId);
-                        ResultSet rs = pstmt.executeQuery();
-                        rs.next();
-                        int count = rs.getInt(1);
-                        
-                        if (count == 0) {
-                            errorMessage = "Guide with ID " + finalNewGuideId + " does not exist.";
-                            success = false;
-                            return null;
-                        }
-                        pstmt.close();
-                    }
-                    
                     // Prepare update query based on which fields are being updated
-                    StringBuilder queryBuilder = new StringBuilder("UPDATE trip SET");
-                    boolean needsComma = false;
+                    StringBuilder queryBuilder = new StringBuilder("UPDATE trip SET WHERE TripTo = ? AND DepartureDate = ?");
+                          
+                    pstmt = conn.prepareStatement("UPDATE trip SET Ppday = ?, GuideId = ? WHERE TripTo = ? AND DepartureDate = ?");
                     
-                    if (finalNewPrice != null) {
-                        queryBuilder.append(" ppday = ?");
-                        needsComma = true;
-                    }
+                    pstmt.setDouble(1, finalNewPrice);                   
                     
-                    if (finalNewGuideId != null) {
-                        if (needsComma) {
-                            queryBuilder.append(",");
-                        }
-                        queryBuilder.append(" GuideId = ?");
-                    }
+                    pstmt.setInt(2, finalNewGuideId);      
                     
-                    queryBuilder.append(" WHERE TripTo = ? AND DepartureDate = ?");
+                    pstmt.setString(3, txtTripTo.getText().trim());
+                    pstmt.setString(4, txtDepartureDate.getText().trim());
                     
-                    pstmt = conn.prepareStatement(queryBuilder.toString());
+                    pstmt.executeUpdate();
                     
-                    int paramIndex = 1;
-                    if (finalNewPrice != null) {
-                        pstmt.setDouble(paramIndex++, finalNewPrice);
-                    }
-                    
-                    if (finalNewGuideId != null) {
-                        pstmt.setInt(paramIndex++, finalNewGuideId);
-                    }
-                    
-                    pstmt.setString(paramIndex++, txtTripTo.getText().trim());
-                    pstmt.setString(paramIndex, txtDepartureDate.getText().trim());
-                    
-                    int rowsUpdated = pstmt.executeUpdate();
-                    
-                    if (rowsUpdated > 0) {
-                        success = true;
-                    } else {
-                        errorMessage = "Update failed. Trip may no longer exist.";
-                        success = false;
-                    }
                 } catch (SQLException e) {
+                	conn.rollback();
                     e.printStackTrace();
-                    errorMessage = e.getMessage();
+                    JOptionPane.showMessageDialog(UpdateTrip.this,
+                            "Rollback has been done. Either the guideId is not in the list of tourguides or the introduced combination is already in the language table.",
+                            "Database Error",
+                            JOptionPane.ERROR_MESSAGE);
                     success = false;
                 } finally {
                     try {

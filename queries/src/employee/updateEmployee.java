@@ -220,14 +220,6 @@ public class updateEmployee extends JFrame {
         // Update status
         txtStatus.setText("Updating project...");
         
-        // Use SwingWorker to perform database operations in background
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            private boolean success = false;
-            private String errorMessage = "";
-            private int rowsUpdated = 0;
-            
-            @Override
-            protected Void doInBackground() throws Exception {
                 Connection conn = null;
                 PreparedStatement pstmt = null;
                 
@@ -244,28 +236,31 @@ public class updateEmployee extends JFrame {
                     pstmt.setInt(1, newDno);
                     pstmt.setString(2, projectName);
                     
-                    rowsUpdated = pstmt.executeUpdate();
+                    pstmt.executeUpdate();
                     
                     // Commit transaction
                     conn.commit();
-                    success = true;
                     
-                } catch (SQLException e) {
-                    // Rollback transaction on error
-                    if (conn != null) {
-                        try {
-                            conn.rollback();
-                        } catch (SQLException ex) {
-                            ex.printStackTrace();
-                        }
+                    JOptionPane.showMessageDialog(this, 
+                            "Record added successfully", 
+                            "Success", 
+                            JOptionPane.INFORMATION_MESSAGE);
+                } catch (SQLException | ClassNotFoundException e) {
+                    try {
+                        // Rollback the transaction
+                        conn.rollback();
+                        
+                        JOptionPane.showMessageDialog(this, 
+                            "Rollback has been done. " + e.getMessage(), 
+                            "Database Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                      
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Error during rollback: " + ex.getMessage(), 
+                            "Database Error", 
+                            JOptionPane.ERROR_MESSAGE);
                     }
-                    e.printStackTrace();
-                    errorMessage = e.getMessage();
-                    success = false;
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    errorMessage = e.getMessage();
-                    success = false;
                 } finally {
                     // Close resources
                     try {
@@ -275,34 +270,5 @@ public class updateEmployee extends JFrame {
                         e.printStackTrace();
                     }
                 }
-                
-                return null;
             }
-            
-            @Override
-            protected void done() {
-                if (success) {
-                    if (rowsUpdated > 0) {
-                        txtStatus.setText("Project updated successfully");
-                        JOptionPane.showMessageDialog(updateEmployee.this, 
-                            "Project was updated successfully. Rows affected: " + rowsUpdated, 
-                            "Success", JOptionPane.INFORMATION_MESSAGE);
-                        clearForm();
-                    } else {
-                        txtStatus.setText("No project found with that name");
-                        JOptionPane.showMessageDialog(updateEmployee.this, 
-                            "No project found with the name: " + projectName, 
-                            "Warning", JOptionPane.WARNING_MESSAGE);
-                    }
-                } else {
-                    txtStatus.setText("Error updating project");
-                    JOptionPane.showMessageDialog(updateEmployee.this, 
-                        "Error updating project: " + errorMessage, 
-                        "Database Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        };
-        
-        worker.execute();
-    }
 }

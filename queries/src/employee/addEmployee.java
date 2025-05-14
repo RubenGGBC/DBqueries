@@ -414,18 +414,6 @@ public class addEmployee extends JFrame {
      * Add employee to database
      */
     private void addEmployeeToDatabase() {
-        // Validate input
-        if (txtFname.getText().trim().isEmpty() || 
-            txtLname.getText().trim().isEmpty() || 
-            txtSsn.getText().trim().isEmpty() || 
-            txtDno.getText().trim().isEmpty()) {
-            
-            JOptionPane.showMessageDialog(this, 
-                "All fields are required.", 
-                "Validation Error", 
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
         
         String fname = txtFname.getText().trim();
         String lname = txtLname.getText().trim();
@@ -444,51 +432,21 @@ public class addEmployee extends JFrame {
         
         // Update status
         txtStatus.setText("Adding employee...");
-        
-        // Use SwingWorker to perform database operations in background
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            private boolean success = false;
-            private String errorMessage = "";
-            
-            @Override
-            protected Void doInBackground() throws Exception {
+          
                 Connection conn = null;
                 PreparedStatement pstmt = null;
                 
                 try {
-                    // Check if department exists
+                    
+                	Class.forName("com.mysql.cj.jdbc.Driver");
                     conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                    pstmt = conn.prepareStatement("SELECT COUNT(*) FROM department WHERE Dnumber = ?");
-                    pstmt.setInt(1, dno);
-                    ResultSet rs = pstmt.executeQuery();
-                    rs.next();
-                    int count = rs.getInt(1);
-                    
-                    if (count == 0) {
-                        errorMessage = "Department " + dno + " does not exist.";
-                        success = false;
-                        return null;
-                    }
-                    
-                    // Check if SSN already exists
-                    pstmt = conn.prepareStatement("SELECT COUNT(*) FROM employee WHERE Ssn = ?");
-                    pstmt.setString(1, ssn);
-                    rs = pstmt.executeQuery();
-                    rs.next();
-                    count = rs.getInt(1);
-                    
-                    if (count > 0) {
-                        errorMessage = "Employee with SSN " + ssn + " already exists.";
-                        success = false;
-                        return null;
-                    }
                     
                     // Disable auto-commit for transaction
                     conn.setAutoCommit(false);
                     
                     // Add employee
                     pstmt = conn.prepareStatement(
-                        "INSERT INTO employee (Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno) " +
+                        "INSERT INTO employee" +
                         "VALUES (?, NULL, ?, ?, NULL, NULL, NULL, NULL, NULL, ?)"
                     );
                     pstmt.setString(1, fname);
@@ -496,24 +454,32 @@ public class addEmployee extends JFrame {
                     pstmt.setString(3, ssn);
                     pstmt.setInt(4, dno);
                     
-                    int rowsInserted = pstmt.executeUpdate();
+                    pstmt.executeUpdate();
                     
                     // Commit transaction
                     conn.commit();
                     
-                    success = (rowsInserted > 0);
-                } catch (SQLException e) {
-                    // Rollback transaction on error
-                    if (conn != null) {
-                        try {
-                            conn.rollback();
-                        } catch (SQLException ex) {
-                            ex.printStackTrace();
-                        }
+                    JOptionPane.showMessageDialog(this, 
+                            "Record added successfully", 
+                            "Success", 
+                            JOptionPane.INFORMATION_MESSAGE);
+        
+                } catch (SQLException | ClassNotFoundException e) {
+                    try {
+                        // Rollback the transaction
+                        conn.rollback();
+                        
+                        JOptionPane.showMessageDialog(this, 
+                            "Rollback has been done. " + e.getMessage(), 
+                            "Database Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                      
+                    } catch (SQLException ex) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Error during rollback: " + ex.getMessage(), 
+                            "Database Error", 
+                            JOptionPane.ERROR_MESSAGE);
                     }
-                    e.printStackTrace();
-                    errorMessage = e.getMessage();
-                    success = false;
                 } finally {
                     // Close resources
                     try {
@@ -523,31 +489,5 @@ public class addEmployee extends JFrame {
                         e.printStackTrace();
                     }
                 }
-                
-                return null;
             }
-            
-            @Override
-            protected void done() {
-                if (success) {
-                    txtStatus.setText("Employee added successfully");
-                    txtStatus.setForeground(new Color(220, 255, 220));
-                    JOptionPane.showMessageDialog(addEmployee.this,
-                        "The employee has been successfully added to the database.",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    clearForm();
-                } else {
-                    txtStatus.setText("Error adding employee");
-                    txtStatus.setForeground(new Color(255, 150, 150));
-                    JOptionPane.showMessageDialog(addEmployee.this,
-                        "Error adding employee: " + errorMessage,
-                        "Database Error",
-                        JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        };
-        
-        worker.execute();
-    }
 }
