@@ -101,7 +101,7 @@ public class MondialMenu extends JFrame {
         
         // Button 1: Long Rivers in Europe
         JButton btnLongRivers = createStyledButton("European Countries with Long Rivers", 
-            "View European country pairs where both have rivers longer than 6000 km", 
+            "View European country borders where both have rivers longer than 6000 km", 
             50, 30, 330, 140);
         btnLongRivers.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -123,7 +123,7 @@ public class MondialMenu extends JFrame {
         
         // Button 3: Population Density Analysis (New)
         JButton btnPopulationDensity = createStyledButton("Population Density Analysis", 
-            "View countries with highest population density and city counts", 
+            "View provinces with more than 300 citizens in all their cities", 
             420, 30, 330, 140);
         btnPopulationDensity.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -256,8 +256,8 @@ public class MondialMenu extends JFrame {
     }
     
     /**
-     * Open query3 - Population Density Analysis (New)
-     */
+     * Open query3 - Population Density Analysis 
+     */ 
     private void openQuery3() {
         Query3 frame = new Query3(); // MondialDB.query3
         frame.setVisible(true);

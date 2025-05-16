@@ -74,7 +74,7 @@ public class Query2 extends JFrame {
         executeQueryButton = createStyledButton("Execute Query", BUTTON_SOFT_BLUE);
         executeQueryButton.addActionListener(this::executeQuery);
 
-        showStatementButton = createStyledButton("Show Statement", new Color(255, 228, 181)); // Light orange
+        showStatementButton = createStyledButton("Show SQL", new Color(255, 228, 181)); // Light orange
         showStatementButton.addActionListener(this::showStatement);
 
         refreshDataButton = createStyledButton("Refresh Data", new Color(176, 224, 230)); // Lighter blue
@@ -122,18 +122,18 @@ public class Query2 extends JFrame {
     }
 
     private void executeQuery(ActionEvent e) {
-        String query = "SELECT c.Name, enc.Continent, e.GDP, e.Inflation, count(city.Name) as 'Amount of cities' " +
-                "FROM country as c " +
-                "JOIN economy as e ON c.Code=e.Country " +
-                "JOIN encompasses AS enc ON c.Code=enc.Country " +
-                "JOIN city ON c.Code=city.Country " +
-                "WHERE NOT EXISTS ( " +
-                "    SELECT b.Country1 " +
-                "    FROM borders as b " +
-                "    JOIN economy as ec ON (b.Country1=c.Code AND ec.Country=b.Country2) " +
-                "        OR (b.Country2=c.Code AND ec.Country=b.Country1) " +
-                "    WHERE ec.GDP >= e.GDP " +
-                ") " +
+        String query = "SELECT c.Name, enc.Continent, e.GDP, e.Inflation, count(city.Name) as 'Amount of cities' \n" +
+                "FROM country as c \n" +
+                "JOIN economy as e ON c.Code=e.Country \n" +
+                "JOIN encompasses AS enc ON c.Code=enc.Country \n" +
+                "JOIN city ON c.Code=city.Country \n" +
+                "WHERE NOT EXISTS ( \n" +
+                "    SELECT b.Country1 \n" +
+                "    FROM borders as b \n" +
+                "    JOIN economy as ec ON (b.Country1=c.Code AND ec.Country=b.Country2) \n" +
+                "        OR (b.Country2=c.Code AND ec.Country=b.Country1) \n" +
+                "    WHERE ec.GDP >= e.GDP \n" +
+                ") \n" +
                 "GROUP BY c.Name, enc.Continent, e.GDP, e.Inflation";
 
         try {
@@ -187,7 +187,10 @@ public class Query2 extends JFrame {
     }
 
     private void showStatement(ActionEvent e) {
-        String queryText = "SELECT c.Name, enc.Continent, e.GDP, e.Inflation, count(city.Name) as 'Amount of cities' \n" +
+    	
+    	JTextArea textArea = new JTextArea("Find all countries that have a higher GDP than all of its frontiering countries. \n"
+    			+ "For them, retrieve the name, the continent, the GDP, the inflation rates and the amount of cities:\n\n" 
+    			+ "SELECT c.Name, enc.Continent, e.GDP, e.Inflation, count(city.Name) as 'Amount of cities' \n" +
                 "FROM country as c \n" +
                 "JOIN economy as e ON c.Code=e.Country \n" +
                 "JOIN encompasses AS enc ON c.Code=enc.Country \n" +
@@ -199,14 +202,13 @@ public class Query2 extends JFrame {
                 "        OR (b.Country2=c.Code AND ec.Country=b.Country1) \n" +
                 "    WHERE ec.GDP >= e.GDP \n" +
                 ") \n" +
-                "GROUP BY c.Name, enc.Continent, e.GDP, e.Inflation";
-
-        JTextArea textArea = new JTextArea(queryText);
+                "GROUP BY c.Name, enc.Continent, e.GDP, e.Inflation");
         textArea.setEditable(false);
-        textArea.setFont(new Font("Monospaced", Font.PLAIN, 12));
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(800, 300));
-
+        scrollPane.setPreferredSize(new Dimension(700, 400));
+        
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
 

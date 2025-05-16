@@ -73,9 +73,9 @@ public class Query3 extends JFrame {
         statementPanel.add(statementLabel, BorderLayout.NORTH);
         
         JTextArea statementText = new JTextArea(
-            "This query selects all provinces such that all their cities have at least 300 people. For them, " +
-            "it shows the amount of cities per province, and the average population on them. Also, it displays " +
-            "the name of the city with the biggest amount of citizens in the province, along with the population amount."
+            "Select all provinces such that all their cities have at least 300 people. "
+            + "For them, show the amount of cities per province, and the average population on them. "
+            + "Also, show the name of the city with biggest amount of citizens in the province, along with the amount.\r\n"
         );
         statementText.setFont(new Font("Serif", Font.PLAIN, 14));
         statementText.setForeground(PASTEL_BUTTON_TEXT);
@@ -293,7 +293,9 @@ public class Query3 extends JFrame {
     }
     
     private void showSQLStatement() {
-        String queryText = "-- This query finds provinces where all cities have at least 300 people\n" +
+        String queryText = "\"Select all provinces such that all their cities have at least 300 people. \n"
+        			  + "For them, show the amount of cities per province, and the average population on them. \n"
+        			  + "Also, show the name of the city with biggest amount of citizens in the province, along with the amount: \n\n\n" +
                       "SELECT pr.name, pr.Population, pr.Country, COUNT(city.Name) AS 'Number of cities',\n" +
                       "AVG(city.Population) AS 'Average population',\n" +
                       "(\n" +

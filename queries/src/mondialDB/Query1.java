@@ -14,6 +14,26 @@ public class Query1 extends JFrame {
 
     private JTable resultTable;
     private JButton executeButton;
+    private JButton showSQLButton;
+
+    private static final String QUERY = "SELECT Country1, Country2 " +
+            "FROM borders AS b \n" +
+            "JOIN encompasses AS enc1 ON Country1 = enc1.Country AND enc1.Continent = 'Europe' \n" +
+            "JOIN encompasses AS enc2 ON Country2 = enc2.Country AND enc2.Continent = 'Europe' \n" +
+            "WHERE ( \n" +
+            "    SELECT SUM(r.Length) \n" +
+            "    FROM country AS c \n" +
+            "    INNER JOIN geo_river AS gr ON c.Code = gr.Country \n" +
+            "    INNER JOIN river AS r ON gr.River = r.Name \n" +
+            "    WHERE c.Code = b.Country1 \n" +
+            ") > 6000 \n" +
+            "AND ( \n" +
+            "    SELECT SUM(r.Length) \n" +
+            "    FROM country AS c \n" +
+            "    INNER JOIN geo_river AS gr ON c.Code = gr.Country \n" +
+            "    INNER JOIN river AS r ON gr.River = r.Name \n" +
+            "    WHERE c.Code = b.Country2 \n" +
+            ") > 6000";
 
     public Query1() {
         setTitle("European Countries with Long Rivers");
@@ -45,37 +65,26 @@ public class Query1 extends JFrame {
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(PASTEL_BACKGROUND);
+        
         executeButton = new JButton("Execute Query");
         executeButton.setBackground(PASTEL_BUTTON);
         executeButton.setForeground(PASTEL_BUTTON_TEXT);
         executeButton.addActionListener(e -> executeQuery());
         buttonPanel.add(executeButton);
+        
+        showSQLButton = new JButton("Show SQL");
+        showSQLButton.setBackground(PASTEL_BUTTON);
+        showSQLButton.setForeground(PASTEL_BUTTON_TEXT);
+        showSQLButton.addActionListener(e -> showSQLStatement());
+        buttonPanel.add(showSQLButton);
+        
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
     private void executeQuery() {
-        String query = "SELECT Country1, Country2 " +
-                "FROM borders AS b " +
-                "JOIN encompasses AS enc1 ON Country1 = enc1.Country AND enc1.Continent = 'Europe' " +
-                "JOIN encompasses AS enc2 ON Country2 = enc2.Country AND enc2.Continent = 'Europe' " +
-                "WHERE ( " +
-                "    SELECT SUM(r.Length) " +
-                "    FROM country AS c " +
-                "    INNER JOIN geo_river AS gr ON c.Code = gr.Country " +
-                "    INNER JOIN river AS r ON gr.River = r.Name " +
-                "    WHERE c.Code = b.Country1 " +
-                ") > 6000 " +
-                "AND ( " +
-                "    SELECT SUM(r.Length) " +
-                "    FROM country AS c " +
-                "    INNER JOIN geo_river AS gr ON c.Code = gr.Country " +
-                "    INNER JOIN river AS r ON gr.River = r.Name " +
-                "    WHERE c.Code = b.Country2 " +
-                ") > 6000";
-
         try {
             Connection conn = DriverManager.getConnection("jdbc:mysql://dif-mysql.ehu.es:23306/DBI08 ","DBI08", "DBI08");
-            PreparedStatement pstmt = conn.prepareStatement(query);
+            PreparedStatement pstmt = conn.prepareStatement(QUERY);
             ResultSet rs = pstmt.executeQuery();
 
             ResultSetMetaData metaData = rs.getMetaData();
@@ -108,6 +117,20 @@ public class Query1 extends JFrame {
                 JOptionPane.ERROR_MESSAGE);
             ex.printStackTrace();
         }
+    }
+    
+    private void showSQLStatement() {
+        JTextArea textArea = new JTextArea("Select all european frontiers (i.e. borders between two european countries) \n"
+        		+ "such that both countries have at least 6000km of rivers:\n\n" + QUERY);
+        textArea.setEditable(false);
+        textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        textArea.setBackground(PASTEL_BACKGROUND);
+        textArea.setForeground(PASTEL_TEXT);
+        
+        JScrollPane scrollPane = new JScrollPane(textArea);
+        scrollPane.setPreferredSize(new Dimension(700, 400));
+        
+        JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public static void main(String[] args) {

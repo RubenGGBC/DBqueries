@@ -25,35 +25,35 @@ public class Query1 extends JFrame {
     private static final String PASS = "DBI08";
     
     private static final String HOTEL_OCCUPANCY_QUERY =
-    		"SELECT " +
-    		"  ht.TripTo, " +
-    		"  ht.DepartureDate, " +
-    		"  h.HotelId, " +
-    		"  h.hotelname, " +
-    		"  h.hotelcity, " +
-    		"  h.hotelcapacity AS TotalCapacity, " +
-    		"  COUNT(DISTINCT htc.CustomerId) AS AssignedCustomers, " +
-    		"  h.hotelcapacity - COUNT(DISTINCT htc.CustomerId) AS AvailableCapacity, " +
-    		"  (COUNT(DISTINCT htc.CustomerId) / h.hotelcapacity * 100) AS OccupancyRate, " +
-    		"  CASE " +
-    		"    WHEN COUNT(DISTINCT htc.CustomerId) > h.hotelcapacity THEN 'OVERBOOKING' " +
-    		"    WHEN COUNT(DISTINCT htc.CustomerId) = h.hotelcapacity THEN 'FULL' " +
-    		"    WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.8 THEN 'OPTIMAL' " +
-    		"    WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.5 THEN 'ACCEPTABLE' " +
-    		"    ELSE 'UNDERUSED' " +
-    		"  END AS HotelUtilization " +
-    		"FROM hotel_trip AS ht " +
-    		"INNER JOIN hotel AS h ON ht.HotelId = h.HotelId " +
-    		"INNER JOIN hotel_trip_customer AS htc ON ht.TripTo = htc.TripTo " +
-    		"  AND ht.DepartureDate = htc.DepartureDate " +
-    		"  AND ht.HotelId = htc.HotelId " +
-    		"WHERE EXISTS (" +
-    		"  SELECT * " +
-    		"  FROM trip AS t " +
-    		"  WHERE t.TripTo = ht.TripTo " +
-    		"  AND t.DepartureDate = ht.DepartureDate " +
-    		") " +
-    		"GROUP BY ht.TripTo, ht.DepartureDate, h.HotelId, h.hotelname, h.hotelcity, h.hotelcapacity " +
+    		"SELECT \n" +
+    		"  ht.TripTo, \n" +
+    		"  ht.DepartureDate, \n" +
+    		"  h.HotelId, \n" +
+    		"  h.hotelname, \n" +
+    		"  h.hotelcity, \n" +
+    		"  h.hotelcapacity AS TotalCapacity, \n" +
+    		"  COUNT(DISTINCT htc.CustomerId) AS AssignedCustomers, \n" +
+    		"  h.hotelcapacity - COUNT(DISTINCT htc.CustomerId) AS AvailableCapacity, \n" +
+    		"  (COUNT(DISTINCT htc.CustomerId) / h.hotelcapacity * 100) AS OccupancyRate, \n" +
+    		"  CASE \n" +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) > h.hotelcapacity THEN 'OVERBOOKING' \n" +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) = h.hotelcapacity THEN 'FULL' \n" +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.8 THEN 'OPTIMAL' \n" +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.5 THEN 'ACCEPTABLE' \n" +
+    		"    ELSE 'UNDERUSED' \n" +
+    		"  END AS HotelUtilization \n" +
+    		"FROM hotel_trip AS ht \n" +
+    		"INNER JOIN hotel AS h ON ht.HotelId = h.HotelId \n" +
+    		"INNER JOIN hotel_trip_customer AS htc ON ht.TripTo = htc.TripTo \n" +
+    		"  AND ht.DepartureDate = htc.DepartureDate \n" +
+    		"  AND ht.HotelId = htc.HotelId \n" +
+    		"WHERE EXISTS (\n" +
+    		"  SELECT * \n" +
+    		"  FROM trip AS t \n" +
+    		"  WHERE t.TripTo = ht.TripTo \n" +
+    		"  AND t.DepartureDate = ht.DepartureDate \n" +
+    		") \n" +
+    		"GROUP BY ht.TripTo, ht.DepartureDate, h.HotelId, h.hotelname, h.hotelcity, h.hotelcapacity \n" +
     		"ORDER BY OccupancyRate DESC;";
     // Blue and black color theme for Travel package
     private static final Color DARK_BLUE = new Color(15, 35, 60);
@@ -135,7 +135,7 @@ public class Query1 extends JFrame {
         JPanel statementPanel = new JPanel();
         statementPanel.setBorder(BorderFactory.createLineBorder(LIGHT_BLUE, 1));
         statementPanel.setBackground(new Color(25, 55, 85));
-        statementPanel.setPreferredSize(new Dimension(1300, 60));
+        statementPanel.setPreferredSize(new Dimension(1300, 75));
         contentPane.add(statementPanel, BorderLayout.NORTH);
         statementPanel.setLayout(new BorderLayout());
         
@@ -145,7 +145,12 @@ public class Query1 extends JFrame {
         statementPanel.add(statementLabel, BorderLayout.WEST);
         
         JTextArea statementText = new JTextArea(
-            "This query analyzes hotel occupancy rates, showing capacity metrics, customer allocation, and hotel utilization categories."
+            "This query is used to analyze hotel occupancy rates. "
+            + "For each available trip, it lists all the hotels, and various info about them: "
+            + "the ID and name, the city, their occupancy % (calculated from the hotel’s capacity "
+            + "and the amount of reserves), and other info (the total nights, the average stay, the trip duration…).  "
+            + "With the hotel capacity and the occupancy, it assigns an Utilization label, with one of the following values: "
+            + "underused (<50%), acceptable (50%-79%), optimal (80%-99%), full (100%) or overbooking (>100%):"
         );
         statementText.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         statementText.setForeground(Color.WHITE);
@@ -450,7 +455,13 @@ public class Query1 extends JFrame {
      * Show SQL Statement in a dialog
      */
     private void showSQLStatement() {
-        JTextArea textArea = new JTextArea(HOTEL_OCCUPANCY_QUERY);
+        JTextArea textArea = new JTextArea("This query is used to analyze hotel occupancy rates. \n"
+        		+ "For each available trip, it lists all the hotels, and various info about them: \n"
+        		+ "the ID and name, the city, their occupancy % (calculated from the hotel’s capacity \n"
+        		+ "and the amount of reserves), and other info (the total nights, the average stay, the trip duration…).  \n"
+        		+ "With the hotel capacity and the occupancy, it assigns an Utilization label, with one of the following values: \n"
+        		+ "underused (<50%), acceptable (50%-79%), optimal (80%-99%), full (100%) or overbooking (>100%):\n\n\n"
+        		+ HOTEL_OCCUPANCY_QUERY);
         textArea.setEditable(false);
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         textArea.setBackground(VERY_LIGHT_BLUE);

@@ -141,9 +141,11 @@ public class Query1 extends JFrame {
         titleStatementLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
         statementPanel.add(titleStatementLabel, BorderLayout.NORTH);
         
-        String statementText = "This query retrieves employees where all of their projects correspond to their department, " +
-                              "and they have at least one child (son or daughter) as a dependent. Results are sorted by " +
-                              "number of projects and dependents.";
+        String statementText = "Retrieve the employee Fname and Lname, its department name and number, "
+        		+ "the number of projects they work on and the number of dependents they have, "
+        		+ "of all the employees that all the projects they work on corresponds to their department "
+        		+ "and where those employees have at least a son or a daughter as a dependent. "
+        		+ "The result Will be sorted descenctly by the number of projects and in case of tie, by the number of dependendents.";
                               
         JTextArea txtStatement = new JTextArea(statementText);
         txtStatement.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -347,7 +349,13 @@ public class Query1 extends JFrame {
      * Show SQL Statement in a dialog
      */
     private void showSQLStatement() {
-        JTextArea textArea = new JTextArea(EMPLOYEE_PROJECT_QUERY);
+        JTextArea textArea = new JTextArea("Retrieve the employee Fname and Lname, its department name and number, \n"
+        		+ "the number of projects they work on and the number of dependents they have, \n"
+        		+ "of all the employees that all the projects they work on corresponds to their department \n"
+        		+ "and where those employees have at least a son or a daughter as a dependent. \n"
+        		+ "The result Will be sorted descenctly by the number of projects and in case of "
+        		+ "tie, by the number of dependendents:\n\n\n"
+        		+ EMPLOYEE_PROJECT_QUERY);
         textArea.setEditable(false);
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         textArea.setBackground(VERY_LIGHT_GREEN);

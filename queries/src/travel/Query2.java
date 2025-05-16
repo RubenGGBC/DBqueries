@@ -26,29 +26,29 @@ public class Query2 extends JFrame {
     private static final String PASS = "DBI08";
     
     private static final String EXCURSION_QUERY = 
-    		"SELECT " +
-    		"  oe.tripto, " +
-    		"  oe.departuredate, " +
-    		"  oe.codeexc, " +
-    		"  oe.excursionto, " +
-    		"  COUNT(DISTINCT eoc.customerid) AS ParticipatingCustomers, " +
-    		"  (SELECT COUNT(DISTINCT customerid) " +
-    		"   FROM hotel_trip_customer " +
-    		"   WHERE tripto = oe.tripto " +
-    		"   AND departuredate = oe.departuredate) AS TotalTripCustomers, " +
-    		"  oe.price AS ExcursionPrice, " +
-    		"  COUNT(DISTINCT eoc.customerid) * oe.price AS TotalRevenue " +
-    		"FROM optional_excursion AS oe " +
-    		"INNER JOIN excur_opt_customer AS eoc ON oe.tripto = eoc.tripto " +
-    		"  AND oe.departuredate = eoc.departuredate " +
-    		"  AND oe.codeexc = eoc.codeexc " +
-    		"WHERE EXISTS (" +
-    		"  SELECT * " +
-    		"  FROM trip AS t " +
-    		"  WHERE t.tripto = oe.tripto " +
-    		"  AND t.departuredate = oe.departuredate " +
-    		") " +
-    		"GROUP BY oe.tripto, oe.departuredate, oe.codeexc, oe.excursionto, oe.price " +
+    		"SELECT \n" +
+    		"  oe.tripto, \n" +
+    		"  oe.departuredate, \n" +
+    		"  oe.codeexc, \n" +
+    		"  oe.excursionto, \n" +
+    		"  COUNT(DISTINCT eoc.customerid) AS ParticipatingCustomers, \n" +
+    		"  (SELECT COUNT(DISTINCT customerid) \n" +
+    		"   FROM hotel_trip_customer \n" +
+    		"   WHERE tripto = oe.tripto \n" +
+    		"   AND departuredate = oe.departuredate) AS TotalTripCustomers, \n" +
+    		"  oe.price AS ExcursionPrice, \n" +
+    		"  COUNT(DISTINCT eoc.customerid) * oe.price AS TotalRevenue \n" +
+    		"FROM optional_excursion AS oe \n" +
+    		"INNER JOIN excur_opt_customer AS eoc ON oe.tripto = eoc.tripto \n" +
+    		"  AND oe.departuredate = eoc.departuredate \n" +
+    		"  AND oe.codeexc = eoc.codeexc \n" +
+    		"WHERE EXISTS (\n" +
+    		"  SELECT * \n" +
+    		"  FROM trip AS t \n" +
+    		"  WHERE t.tripto = oe.tripto \n" +
+    		"  AND t.departuredate = oe.departuredate \n" +
+    		") \n" +
+    		"GROUP BY oe.tripto, oe.departuredate, oe.codeexc, oe.excursionto, oe.price \n" +
     		"ORDER BY ParticipatingCustomers DESC;";
 
     // Blue and black color theme for Travel package - from TourGuideRevenueViewer
@@ -131,7 +131,7 @@ public class Query2 extends JFrame {
         JPanel statementPanel = new JPanel();
         statementPanel.setBorder(BorderFactory.createLineBorder(LIGHT_BLUE, 1));
         statementPanel.setBackground(new Color(25, 55, 85));
-        statementPanel.setPreferredSize(new Dimension(1400, 60));
+        statementPanel.setPreferredSize(new Dimension(1400, 75));
         contentPane.add(statementPanel, BorderLayout.NORTH);
         statementPanel.setLayout(new BorderLayout());
         
@@ -141,7 +141,11 @@ public class Query2 extends JFrame {
         statementPanel.add(statementLabel, BorderLayout.WEST);
         
         JTextArea statementText = new JTextArea(
-            "This query analyzes excursion participation rates, showing customer engagement, revenue contribution, and popularity metrics for optional excursions."
+            "For each trip, this query takes all excursions, and gives different metrics, "
+            + "such as the participation rate (taken from the count of customers in the trip with respect to the customers in the excursion), "
+            + "the revenue (calculated from the price times the amount of unique customers),  the revenue contribution percent "
+            + "(with respect to the total revenue generated in the trip), and a label for the popularity of the excursion "
+            + "(based on the participation rate: low, medium, high or very high):"
         );
         statementText.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         statementText.setForeground(Color.WHITE);
@@ -471,7 +475,12 @@ public class Query2 extends JFrame {
      * Show SQL Statement in dialog like in TourGuideRevenueViewer
      */
     private void showSQLStatement() {
-        JTextArea textArea = new JTextArea(EXCURSION_QUERY);
+        JTextArea textArea = new JTextArea("For each trip, this query takes all excursions, and gives different metrics, \n"
+                + "such as the participation rate (taken from the count of customers in the trip with respect to the customers in the excursion), \n"
+                + "the revenue (calculated from the price times the amount of unique customers),  the revenue contribution percent \n"
+                + "(with respect to the total revenue generated in the trip), and a label for the popularity of the excursion \n"
+                + "(based on the participation rate: low, medium, high or very high): \n\n\n"
+                + EXCURSION_QUERY);
         textArea.setEditable(false);
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         textArea.setBackground(new Color(240, 248, 255));
