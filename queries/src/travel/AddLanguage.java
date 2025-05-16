@@ -358,14 +358,8 @@ public class AddLanguage extends JFrame {
         });
         panelFooter.add(btnRefresh);
         
-        // Exit button
-        btnExit = createStyledButton("Exit");
-        btnExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        panelFooter.add(btnExit);
+       
+  
     }
     
     /**
@@ -478,7 +472,7 @@ public class AddLanguage extends JFrame {
                     // Set header style
                     JTableHeader header = guidesTable.getTableHeader();
                     header.setBackground(MEDIUM_BLUE);
-                    header.setForeground(Color.WHITE);
+                    header.setForeground(Color.blue.darker());
                     header.setFont(new Font("Segoe UI", Font.BOLD, 14));
                     
                     // Add selection listener
@@ -555,7 +549,7 @@ public class AddLanguage extends JFrame {
                     String query = "SELECT l.GuideId, t.guidename, l.Lang " +
                                    "FROM languages l " +
                                    "JOIN tourguide t ON l.GuideId = t.GuideId " +
-                                   "ORDER BY t.guidename, l.Lang";
+                                   "ORDER BY l.GuideId, l.Lang";
                     
                     
                     rs = stmt.executeQuery(query);
@@ -634,7 +628,7 @@ public class AddLanguage extends JFrame {
             pstmt.setString(2, language);
             pstmt.executeUpdate();
                     
-         // Commit changes
+            // Commit changes
             conn.commit();
             
             JOptionPane.showMessageDialog(this, 
@@ -642,15 +636,17 @@ public class AddLanguage extends JFrame {
                     "Success", 
                     JOptionPane.INFORMATION_MESSAGE);
             
-        }catch (SQLException | ClassNotFoundException e) {
+            //Refresh data in the table
+            fetchLanguageData();
+            
+        }catch (SQLException e) {
             try {
                 // Rollback the transaction
-                if (conn != null) {
-                    conn.rollback();
-                }
+                conn.rollback();
                         
                 JOptionPane.showMessageDialog(this, 
-                    "Rollback has been done. " + e.getMessage(), 
+                    "Rollback has been done: " +
+                    "It is likely that the introduced GuideId is not in the list of guides (you can check the guides clicking the \"Show Guides\" button) or that the introduced combination is already in the list", 
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
                             
@@ -660,6 +656,11 @@ public class AddLanguage extends JFrame {
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception e) {
+        	JOptionPane.showMessageDialog(this, 
+                    "There has been an error: " + e.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
         } finally {
             // Close resources
             try {

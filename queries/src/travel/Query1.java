@@ -11,7 +11,7 @@ import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
 
-public class query1 extends JFrame {
+public class Query1 extends JFrame {
     private JPanel contentPane;
     private JTable resultTable;
     private DefaultTableModel tableModel;
@@ -30,7 +30,7 @@ public class query1 extends JFrame {
     		"SELECT " +
     				" ht.TripTo, " +
     				" ht.DepartureDate, " +
-    				" h.HotelId, " +
+    				" h.HotelId , " +
     				" h.hotelname, " +
     				" h.hotelcity, " +
     				" h.hotelcapacity AS TotalCapacity, " +
@@ -80,7 +80,7 @@ public class query1 extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    query1 frame = new query1();
+                    Query1 frame = new Query1();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -92,9 +92,8 @@ public class query1 extends JFrame {
     /**
      * Create the frame.
      */
-    public query1() {
+    public Query1() {
         setTitle("Hotel Occupancy Analysis");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1300, 700);
         setLocationRelativeTo(null);
         
@@ -391,21 +390,7 @@ public class query1 extends JFrame {
         });
         panelControls.add(btnShowSQL);
         
-        btnExport = createStyledButton("Export Data");
-        btnExport.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                exportData();
-            }
-        });
-        panelControls.add(btnExport);
-        
-        JButton btnExit = createStyledButton("Exit");
-        btnExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        panelControls.add(btnExit);
+      
     }
     
     /**
@@ -487,24 +472,7 @@ public class query1 extends JFrame {
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    /**
-     * Export data to a file (placeholder)
-     */
-    private void exportData() {
-        if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No data to export. Please execute the query first.", 
-                "Export Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // This is a placeholder for export functionality
-        JOptionPane.showMessageDialog(this, 
-            "Data would be exported to CSV/Excel here.", 
-            "Export Data", 
-            JOptionPane.INFORMATION_MESSAGE);
-    }
+   
     
     /**
      * Connect to database and fetch data
@@ -532,11 +500,11 @@ public class query1 extends JFrame {
                     rs = stmt.executeQuery(HOTEL_OCCUPANCY_QUERY);
                     
                     while (rs.next()) {
-                        String tripTo = rs.getString("TripTo");
-                        String departureDate = rs.getString("DepartureDate");
-                        int hotelId = rs.getInt("HotelId");
-                        String hotelName = rs.getString("hotelname");
-                        String hotelCity = rs.getString("hotelcity");
+                        String tripTo = rs.getString("ht.TripTo");
+                        String departureDate = rs.getString("ht.DepartureDate");
+                        String hotelId = rs.getString("h.HotelId");
+                        String hotelName = rs.getString("h.hotelname");
+                        String hotelCity = rs.getString("h.hotelcity");
                         int totalCapacity = rs.getInt("TotalCapacity");
                         int assignedCustomers = rs.getInt("AssignedCustomers");
                         int availableCapacity = rs.getInt("AvailableCapacity");
@@ -583,11 +551,9 @@ public class query1 extends JFrame {
                     txtStatus.setForeground(new Color(200, 255, 200));
                     btnRefresh.setEnabled(true);
                     btnConnect.setText("Reconnect");
-                    btnExport.setEnabled(true);
                 } else {
                     txtStatus.setText("Connection failed. Check console for details.");
                     txtStatus.setForeground(new Color(255, 150, 150));
-                    btnExport.setEnabled(false);
                 }
             }
         };

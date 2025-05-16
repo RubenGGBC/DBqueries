@@ -1,4 +1,4 @@
-package conexiones;
+package conexions;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -308,7 +308,7 @@ public class TravelMenu extends JFrame {
      * Open Hotel Occupancy Analysis
      */
     private void openHotelOccupancy() {
-        travel.query1 frame = new travel.query1();
+        travel.Query1 frame = new travel.Query1();
         frame.setVisible(true);
     }
     
@@ -316,7 +316,7 @@ public class TravelMenu extends JFrame {
      * Open Excursion Participation Analysis
      */
     private void openExcursionParticipation() {
-        travel.query2 frame = new travel.query2();
+        travel.Query2 frame = new travel.Query2();
         frame.setVisible(true);
     }
     
@@ -324,7 +324,7 @@ public class TravelMenu extends JFrame {
      * Open Tour Guide Revenue Analysis
      */
     private void openTourGuideRevenue() {
-        TourGuideRevenueViewer frame = new TourGuideRevenueViewer();
+        Query3 frame = new Query3();
         frame.setVisible(true);
     }
     

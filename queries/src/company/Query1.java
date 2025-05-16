@@ -1,4 +1,4 @@
-package employee;
+package company;
 
 import java.awt.*;
 import java.sql.*;
@@ -11,7 +11,7 @@ import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
 
-public class EmployeeProjectAnalyzer extends JFrame {
+public class Query1 extends JFrame {
     private JPanel contentPane;
     private JTable tableResults;
     private DefaultTableModel tableModel;
@@ -72,7 +72,7 @@ public class EmployeeProjectAnalyzer extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    EmployeeProjectAnalyzer frame = new EmployeeProjectAnalyzer();
+                    Query1 frame = new Query1();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -84,7 +84,7 @@ public class EmployeeProjectAnalyzer extends JFrame {
     /**
      * Create the frame.
      */
-    public EmployeeProjectAnalyzer() {
+    public Query1() {
         setTitle("Employee Project and Dependent Analysis");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 800, 600);
@@ -290,23 +290,8 @@ public class EmployeeProjectAnalyzer extends JFrame {
             }
         });
         controlPanel.add(btnShowSQL);
-        
-        btnExport = createStyledButton("Export");
-        btnExport.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                exportData();
-            }
-        });
-        controlPanel.add(btnExport);
-        
-        JButton btnExit = createStyledButton("Exit");
-        btnExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        controlPanel.add(btnExit);
     }
+       
     
     /**
      * Create a styled button with custom painting
@@ -374,24 +359,6 @@ public class EmployeeProjectAnalyzer extends JFrame {
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
     
-    /**
-     * Export data to a file (placeholder)
-     */
-    private void exportData() {
-        if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No data to export. Please execute the query first.", 
-                "Export Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // This is a placeholder for export functionality
-        JOptionPane.showMessageDialog(this, 
-            "Data would be exported to CSV/Excel here.", 
-            "Export Data", 
-            JOptionPane.INFORMATION_MESSAGE);
-    }
     
     /**
      * Connect to database and fetch data
@@ -456,10 +423,8 @@ public class EmployeeProjectAnalyzer extends JFrame {
                     txtStatus.setText("Found " + tableModel.getRowCount() + " employees");
                     btnRefresh.setEnabled(true);
                     btnConnect.setText("Reconnect");
-                    btnExport.setEnabled(true);
                 } else {
                     txtStatus.setText("Connection failed");
-                    btnExport.setEnabled(false);
                 }
             }
         };

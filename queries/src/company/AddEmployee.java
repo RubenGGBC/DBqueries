@@ -1,4 +1,4 @@
-package employee;
+package company;
 
 import java.awt.*;
 import java.sql.*;
@@ -14,7 +14,7 @@ import java.util.Vector;
  * Modernized graphical interface for adding a new employee
  * With database table showing current employees
  */
-public class addEmployee extends JFrame {
+public class AddEmployee extends JFrame {
     private JPanel contentPane;
     private JTextField txtFname;
     private JTextField txtLname;
@@ -54,7 +54,7 @@ public class addEmployee extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    addEmployee frame = new addEmployee();
+                    AddEmployee frame = new AddEmployee();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -66,7 +66,7 @@ public class addEmployee extends JFrame {
     /**
      * Create the frame.
      */
-    public addEmployee() {
+    public AddEmployee() {
         setTitle("Add New Employee");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 900, 700);
@@ -231,7 +231,7 @@ public class addEmployee extends JFrame {
         splitPane.setBottomComponent(tablePanel);
         
         // Create table for employees
-        String[] columnNames = {"SSN", "First Name", "Last Name", "Sex", "Salary", "Department", "Supervisor"};
+        String[] columnNames = {"SSN", "First Name", "Last Name","Department"};
         employeesTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -402,7 +402,7 @@ public class addEmployee extends JFrame {
                         "(SELECT CONCAT(s.Fname, ' ', s.Lname) FROM employee s WHERE s.Ssn = e.Super_ssn) AS Supervisor " +
                         "FROM employee e " +
                         "LEFT JOIN department d ON e.Dno = d.Dnumber " +
-                        "ORDER BY e.Lname, e.Fname";
+                        "ORDER BY e.Ssn";
             
             rs = stmt.executeQuery(sql);
             
@@ -410,13 +410,11 @@ public class addEmployee extends JFrame {
                 String ssn = rs.getString("Ssn");
                 String fname = rs.getString("Fname");
                 String lname = rs.getString("Lname");
-                String sex = rs.getString("Sex");
-                double salary = rs.getDouble("Salary");
+            
                 String deptName = rs.getString("Dname");
-                String supervisor = rs.getString("Supervisor");
                 
                 employeesTableModel.addRow(new Object[] {
-                    ssn, fname, lname, sex, salary, deptName, supervisor
+                    ssn, fname, lname, deptName
                 });
             }
             
@@ -534,7 +532,7 @@ public class addEmployee extends JFrame {
                     
                     // Show in dialog
                     JOptionPane.showMessageDialog(
-                        addEmployee.this,
+                        AddEmployee.this,
                         scrollPane,
                         "Available Departments",
                         JOptionPane.INFORMATION_MESSAGE
@@ -542,7 +540,7 @@ public class addEmployee extends JFrame {
                     
                 } catch (Exception e) {
                     JOptionPane.showMessageDialog(
-                        addEmployee.this,
+                        AddEmployee.this,
                         "Error retrieving departments: " + e.getMessage(),
                         "Database Error",
                         JOptionPane.ERROR_MESSAGE
@@ -600,7 +598,7 @@ public class addEmployee extends JFrame {
             // Add employee
             pstmt = conn.prepareStatement(
                 "INSERT INTO employee (Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno) " +
-                "VALUES (?, NULL, ?, ?, NULL, NULL, 'M', 30000, NULL, ?)"
+                "VALUES (?, NULL, ?, ?, NULL, NULL, NULL, NULL, NULL, ?)"
             );
             pstmt.setString(1, fname);
             pstmt.setString(2, lname);
@@ -623,7 +621,7 @@ public class addEmployee extends JFrame {
             // Refresh table to show new employee
             loadEmployeesData();
         
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             try {
                 // Rollback the transaction
                 if (conn != null) {
@@ -631,7 +629,8 @@ public class addEmployee extends JFrame {
                 }
                 
                 JOptionPane.showMessageDialog(this, 
-                    "Rollback has been done. " + e.getMessage(), 
+                    "Rollback has been done: " +
+                    "It is likely that the Ssn you have entered is already in the database or that the department you have entered is not on the list of departments ", 
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
                       
@@ -642,6 +641,11 @@ public class addEmployee extends JFrame {
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception e) {
+        	JOptionPane.showMessageDialog(this, 
+                    "There has been an error: " + e.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
         } finally {
             // Close resources
             try {

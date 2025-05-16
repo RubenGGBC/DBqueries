@@ -1,4 +1,4 @@
-package employee;
+package company;
 
 import java.awt.*;
 import java.sql.*;
@@ -8,7 +8,7 @@ import javax.swing.table.*;
 import java.awt.event.*;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
-public class updateEmployee extends JFrame {
+public class UpdateProject extends JFrame {
     private JPanel contentPane;
     private JTextField txtProjectName;
     private JTextField txtNewDno;
@@ -43,7 +43,7 @@ public class updateEmployee extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    updateEmployee frame = new updateEmployee();
+                    UpdateProject frame = new UpdateProject();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -55,9 +55,8 @@ public class updateEmployee extends JFrame {
     /**
      * Create the frame.
      */
-    public updateEmployee() {
+    public UpdateProject() {
         setTitle("Update Project Department");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 800, 600);
         setLocationRelativeTo(null);
         
@@ -138,13 +137,8 @@ public class updateEmployee extends JFrame {
         });
         formButtonPanel.add(btnUpdate);
         
-        btnShowProjects = createStyledButton("Show Projects", DARK_GREEN, Color.WHITE);
-        btnShowProjects.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                loadProjectsData();
-            }
-        });
-        formButtonPanel.add(btnShowProjects);
+    
+   
         
         // Projects table panel (bottom of split pane)
         JPanel projectsPanel = new JPanel();
@@ -161,7 +155,7 @@ public class updateEmployee extends JFrame {
         splitPane.setBottomComponent(projectsPanel);
         
         // Create table model for projects
-        String[] columnNames = {"Project Number", "Project Name", "Department Number", "Department Location", "Controlling Department"};
+        String[] columnNames = {"Project Number", "Project Name", "Department Number"};
         projectsTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -275,27 +269,27 @@ public class updateEmployee extends JFrame {
             stmt = conn.createStatement();
             
             // Comprehensive query to get project details with department info
-            String sql = "SELECT p.Pnumber, p.Pname, p.Dnum, d.Dlocation, d.Dname " +
-                         "FROM project p " +
+            String sql = "SELECT p.Pnumber, p.Pname, p.Dnum, d.Dname " +
+                         "FROM project AS p " +
                          "JOIN department d ON p.Dnum = d.Dnumber " +
                          "ORDER BY p.Pnumber";
-            
+                         
+           
             rs = stmt.executeQuery(sql);
             
             while (rs.next()) {
                 int projectNumber = rs.getInt("Pnumber");
                 String projectName = rs.getString("Pname");
                 int deptNumber = rs.getInt("Dnum");
-                String deptLocation = rs.getString("Dlocation");
-                String deptName = rs.getString("Dname");
+              
                 
                 projectsTableModel.addRow(new Object[] {
-                    projectNumber, projectName, deptNumber, deptLocation, deptName
+                    projectNumber, projectName, deptNumber
                 });
             }
-            
-            txtStatus.setText("Projects data loaded successfully");
-            
+        
+        txtStatus.setText("Projects data loaded successfully");
+   
         } catch (Exception e) {
             txtStatus.setText("Error loading projects data");
             JOptionPane.showMessageDialog(this, 
@@ -340,16 +334,8 @@ public class updateEmployee extends JFrame {
      * Update project department in database
      */
     private void updateProjectDepartment() {
-        String projectName = txtProjectName.getText().trim();
-        String dnoStr = txtNewDno.getText().trim();
-        
-        // Validate input
-        if (projectName.isEmpty() || dnoStr.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "Please fill in all fields", 
-                "Input Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
+        String projectName = txtProjectName.getText();
+        String dnoStr = txtNewDno.getText();
         
         int newDno;
         try {
@@ -366,7 +352,6 @@ public class updateEmployee extends JFrame {
         
         Connection conn = null;
         PreparedStatement pstmt = null;
-        boolean success = false;
         
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -376,44 +361,31 @@ public class updateEmployee extends JFrame {
             conn.setAutoCommit(false);
             
             // Update project department
-            String sql = "UPDATE project SET Dnum = ? WHERE Pname = ?";
-            pstmt = conn.prepareStatement(sql);
+            pstmt = conn.prepareStatement("UPDATE project SET Dnum = ? WHERE Pname = ?");
             pstmt.setInt(1, newDno);
             pstmt.setString(2, projectName);
             
-            int rowsUpdated = pstmt.executeUpdate();
+            pstmt.executeUpdate();
             
             // Commit transaction
             conn.commit();
             
-            if (rowsUpdated > 0) {
-                success = true;
-                txtStatus.setText("Project updated successfully");
-                
-                JOptionPane.showMessageDialog(this, 
-                        "Project '" + projectName + "' updated successfully", 
-                        "Success", 
-                        JOptionPane.INFORMATION_MESSAGE);
-                
-                // Refresh the projects table to show the updated data
-                loadProjectsData();
-            } else {
-                JOptionPane.showMessageDialog(this, 
-                    "Project '" + projectName + "' not found", 
-                    "Update Failed", 
-                    JOptionPane.WARNING_MESSAGE);
-                    
-                txtStatus.setText("No project was updated");
-            }
-        } catch (SQLException | ClassNotFoundException e) {
+            JOptionPane.showMessageDialog(this, 
+                    "Record updated successfully", 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            
+          //Refresh data in the table
+            loadProjectsData();
+            
+        } catch (SQLException e) {
             try {
                 // Rollback the transaction
-                if (conn != null) {
-                    conn.rollback();
-                }
+                conn.rollback();
                 
                 JOptionPane.showMessageDialog(this, 
-                    "Rollback has been done. " + e.getMessage(), 
+                    "Rollback has been done: " +
+                    "It is likely that you have entered a not existing department number" , 
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
                       
@@ -424,6 +396,11 @@ public class updateEmployee extends JFrame {
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception e) {
+        	JOptionPane.showMessageDialog(this, 
+                    "There has been an error: " + e.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
         } finally {
             // Close resources
             try {

@@ -1,4 +1,4 @@
-package conexiones;
+package conexions;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -6,10 +6,10 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.geom.RoundRectangle2D;
 
-import employee.*;
 import travel.*;
-import MondialDB.*;
-import Restaurant.*;
+import company.*;
+import mondialDB.*;
+import restaurant.*;
 
 
 public class MainMenuConector extends JFrame {

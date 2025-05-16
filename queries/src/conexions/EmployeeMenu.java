@@ -1,12 +1,15 @@
-package conexiones;
+package conexions;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
-import java.awt.geom.RoundRectangle2D;
 
-import employee.*;
+import company.*;
+
+import java.awt.geom.RoundRectangle2D;
+import company.AddEmployee;
+import company.UpdateProject;
 
 /**
  * EmployeeMenu - Navigation interface for the Employee database queries
@@ -309,7 +312,7 @@ public class EmployeeMenu extends JFrame {
      * Open the EmployeeProjectAnalyzer
      */
     private void openEmployeeProjectAnalyzer() {
-        EmployeeProjectAnalyzer frame = new EmployeeProjectAnalyzer();
+        Query1 frame = new Query1();
         frame.setVisible(true);
     }
     
@@ -317,7 +320,7 @@ public class EmployeeMenu extends JFrame {
      * Open the EmployeePairs (Department Comparison)
      */
     private void openEmployeePairs() {
-        EmployyePairs frame = new EmployyePairs();
+        Query3 frame = new Query3();
         frame.setVisible(true);
     }
     
@@ -325,7 +328,7 @@ public class EmployeeMenu extends JFrame {
      * Open the ProjectEmployeeHours
      */
     private void openProjectEmployeeHours() {
-        ProjectEmployeeHours frame = new ProjectEmployeeHours();
+        Query2 frame = new Query2();
         frame.setVisible(true);
     }
     
@@ -333,7 +336,7 @@ public class EmployeeMenu extends JFrame {
      * Open the addEmployee
      */
     private void openAddEmployee() {
-        addEmployee frame = new addEmployee();
+        AddEmployee frame = new AddEmployee();
          frame.setVisible(true);
     }
     
@@ -341,7 +344,7 @@ public class EmployeeMenu extends JFrame {
      * Open the updateEmployee
      */
     private void openUpdateEmployee() {
-        updateEmployee frame = new updateEmployee();
+        UpdateProject frame = new UpdateProject();
         frame.setVisible(true);
     }
     

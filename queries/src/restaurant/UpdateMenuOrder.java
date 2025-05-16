@@ -1,4 +1,4 @@
-package Restaurant;
+package restaurant;
 
 import java.awt.*;
 import java.sql.*;
@@ -11,57 +11,59 @@ import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
 import java.awt.geom.RoundRectangle2D;
 
-public class addFrequents extends JFrame {
+public class UpdateMenuOrder extends JFrame {
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
     
     // Database table structure
-    private static final String TABLE_NAME = "frequents";
-    private static final String COL_NAME_ID = "nameId";
-    private static final String COL_RESTAUR_NAME = "restaurname";
+    private static final String TABLE_NAME = "menu_order";
+    private static final String COL_NUMORD = "numord";
+    private static final String COL_MENU_TYPE = "menu_mtype";
+    private static final String COL_MENU_ID = "menu_id";
     
-    // Pastel color theme consistent with Mondial frames
-    private static final Color PASTEL_BACKGROUND = new Color(253, 245, 230); // Soft peach
-    private static final Color PASTEL_HEADER = new Color(255, 228, 196); // Bisque
-    private static final Color PASTEL_TEXT = new Color(119, 136, 153); // Slate gray
-    private static final Color PASTEL_BUTTON = new Color(221, 160, 221); // Plum
-    private static final Color PASTEL_BUTTON_TEXT = new Color(75, 0, 130); // Indigo
-    private static final Color PASTEL_TABLE_HEADER = new Color(255, 222, 173); // Light orange
-    private static final Color PASTEL_SELECTION = new Color(176, 224, 230); // Powder blue
+    // Nuevo esquema de colores rojo/naranja
+    private static final Color PASTEL_BACKGROUND = new Color(255, 245, 238); // Seashell
+    private static final Color PASTEL_HEADER = new Color(255, 160, 122); // Light salmon
+    private static final Color PASTEL_TEXT = new Color(139, 69, 19); // Saddle brown
+    private static final Color PASTEL_BUTTON = new Color(255, 99, 71); // Tomato
+    private static final Color PASTEL_BUTTON_TEXT = new Color(255, 255, 240); // Ivory
+    private static final Color PASTEL_TABLE_HEADER = new Color(255, 127, 80); // Coral
+    private static final Color PASTEL_SELECTION = new Color(255, 218, 185); // Peach puff
     
-    private JTextField nameIdField;
-    private JTextField restaurantNameField;
-    private JTable frequentsTable;
+    private JTextField orderNumberField;
+    private JTextField menuTypeField;
+    private JTextField menuIdField;
+    private JTable ordersTable;
     private DefaultTableModel tableModel;
     private JLabel statusLabel;
     
-    public addFrequents() {
-        setTitle("Restaurant Frequents Manager");
-        setSize(800, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    public UpdateMenuOrder() {
+        setTitle("Restaurant Menu Order Manager");
+        setSize(850, 650); // Tamaño más grande para mejor visualización
         getContentPane().setBackground(PASTEL_BACKGROUND);
         setLayout(new BorderLayout(10, 10));
         
         initComponents();
         
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
     
     private void initComponents() {
         // Create a header panel with the description
         JPanel headerPanel = new JPanel();
         headerPanel.setBackground(PASTEL_HEADER);
-        headerPanel.setPreferredSize(new Dimension(800, 80));
+        headerPanel.setPreferredSize(new Dimension(850, 80));
         headerPanel.setLayout(new BorderLayout());
         
-        JLabel titleLabel = new JLabel("Restaurant Frequents Database");
+        JLabel titleLabel = new JLabel("Restaurant Menu Order Database");
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleLabel.setForeground(PASTEL_TEXT);
         titleLabel.setFont(new Font("Serif", Font.BOLD, 24));
         headerPanel.add(titleLabel, BorderLayout.CENTER);
         
-        JLabel subtitleLabel = new JLabel("Retrieve data about customers and the restaurants they frequent");
+        JLabel subtitleLabel = new JLabel("Update orders with new menu types and IDs");
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         subtitleLabel.setForeground(PASTEL_TEXT);
         subtitleLabel.setFont(new Font("Serif", Font.ITALIC, 16));
@@ -77,41 +79,50 @@ public class addFrequents extends JFrame {
         
         // Create form panel
         JPanel formPanel = new JPanel();
-        formPanel.setLayout(new GridLayout(3, 2, 10, 10));
+        formPanel.setLayout(new GridLayout(4, 2, 10, 10));
         formPanel.setBackground(PASTEL_BACKGROUND);
         formPanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(PASTEL_TEXT, 1),
-            "Add New Frequent",
+            "Update Menu Order",
             TitledBorder.LEFT,
             TitledBorder.TOP,
             new Font("Serif", Font.BOLD, 14),
             PASTEL_TEXT
         ));
         
-        JLabel nameIdLabel = new JLabel("Name ID:");
-        nameIdLabel.setFont(new Font("Serif", Font.PLAIN, 14));
-        nameIdLabel.setForeground(PASTEL_TEXT);
-        formPanel.add(nameIdLabel);
+        JLabel orderNumberLabel = new JLabel("Order Number:");
+        orderNumberLabel.setFont(new Font("Serif", Font.PLAIN, 14));
+        orderNumberLabel.setForeground(PASTEL_TEXT);
+        formPanel.add(orderNumberLabel);
         
-        nameIdField = new JTextField(20);
-        nameIdField.setFont(new Font("Serif", Font.PLAIN, 14));
-        formPanel.add(nameIdField);
+        orderNumberField = new JTextField(20);
+        orderNumberField.setFont(new Font("Serif", Font.PLAIN, 14));
+        formPanel.add(orderNumberField);
         
-        JLabel restaurantNameLabel = new JLabel("Restaurant Name:");
-        restaurantNameLabel.setFont(new Font("Serif", Font.PLAIN, 14));
-        restaurantNameLabel.setForeground(PASTEL_TEXT);
-        formPanel.add(restaurantNameLabel);
+        JLabel menuTypeLabel = new JLabel("New Menu Type:");
+        menuTypeLabel.setFont(new Font("Serif", Font.PLAIN, 14));
+        menuTypeLabel.setForeground(PASTEL_TEXT);
+        formPanel.add(menuTypeLabel);
         
-        restaurantNameField = new JTextField(20);
-        restaurantNameField.setFont(new Font("Serif", Font.PLAIN, 14));
-        formPanel.add(restaurantNameField);
+        menuTypeField = new JTextField(20);
+        menuTypeField.setFont(new Font("Serif", Font.PLAIN, 14));
+        formPanel.add(menuTypeField);
         
-        JButton addButton = createStyledButton("Add Frequent");
-        addButton.addActionListener(e -> addFrequent());
+        JLabel menuIdLabel = new JLabel("New Menu ID:");
+        menuIdLabel.setFont(new Font("Serif", Font.PLAIN, 14));
+        menuIdLabel.setForeground(PASTEL_TEXT);
+        formPanel.add(menuIdLabel);
+        
+        menuIdField = new JTextField(20);
+        menuIdField.setFont(new Font("Serif", Font.PLAIN, 14));
+        formPanel.add(menuIdField);
+        
+        JButton updateButton = createStyledButton("Update Order");
+        updateButton.addActionListener(e -> updateMenuOrder());
         
         JPanel buttonPanel = new JPanel();
         buttonPanel.setBackground(PASTEL_BACKGROUND);
-        buttonPanel.add(addButton);
+        buttonPanel.add(updateButton);
         
         formPanel.add(new JLabel(""));
         formPanel.add(buttonPanel);
@@ -122,7 +133,7 @@ public class addFrequents extends JFrame {
         tablePanel.setBackground(PASTEL_BACKGROUND);
         tablePanel.setBorder(BorderFactory.createTitledBorder(
             BorderFactory.createLineBorder(PASTEL_TEXT, 1),
-            "Frequents Data",
+            "Current Orders",
             TitledBorder.LEFT,
             TitledBorder.TOP,
             new Font("Serif", Font.BOLD, 14),
@@ -130,20 +141,30 @@ public class addFrequents extends JFrame {
         ));
         
         // Create table
-        String[] columnNames = {"Name ID", "Restaurant Name"};
+        String[] columnNames = {"Order Number", "Menu Type", "Menu ID"};
         tableModel = new DefaultTableModel(columnNames, 0);
-        frequentsTable = new JTable(tableModel);
-        frequentsTable.setFillsViewportHeight(true);
-        frequentsTable.setBackground(Color.WHITE);
-        frequentsTable.setForeground(PASTEL_TEXT);
-        frequentsTable.setSelectionBackground(PASTEL_SELECTION);
-        frequentsTable.setFont(new Font("Serif", Font.PLAIN, 14));
-        frequentsTable.setRowHeight(25);
-        frequentsTable.setIntercellSpacing(new Dimension(5, 0));
-        frequentsTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        ordersTable = new JTable(tableModel);
+        ordersTable.setFillsViewportHeight(true);
+        ordersTable.setBackground(Color.WHITE);
+        ordersTable.setForeground(PASTEL_TEXT);
+        ordersTable.setSelectionBackground(PASTEL_SELECTION);
+        ordersTable.setFont(new Font("Serif", Font.PLAIN, 14));
+        ordersTable.setRowHeight(25);
+        ordersTable.setIntercellSpacing(new Dimension(5, 0));
+        ordersTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // Add selection listener to populate form fields when a row is selected
+        ordersTable.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && ordersTable.getSelectedRow() != -1) {
+                int selectedRow = ordersTable.getSelectedRow();
+                orderNumberField.setText(ordersTable.getValueAt(selectedRow, 0).toString());
+                menuTypeField.setText(ordersTable.getValueAt(selectedRow, 1).toString());
+                menuIdField.setText(ordersTable.getValueAt(selectedRow, 2).toString());
+            }
+        });
         
         // Set custom renderer for alternate row colors
-        frequentsTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+        ordersTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -152,29 +173,29 @@ public class addFrequents extends JFrame {
                     c.setBackground(PASTEL_SELECTION);
                     c.setForeground(PASTEL_TEXT);
                 } else {
-                    c.setBackground(row % 2 == 0 ? new Color(240, 248, 255) : Color.WHITE);
+                    c.setBackground(row % 2 == 0 ? new Color(255, 235, 215) : Color.WHITE); // Antique white alternating
                     c.setForeground(PASTEL_TEXT);
                 }
                 
-                ((JLabel) c).setHorizontalAlignment(column == 0 ? JLabel.LEFT : JLabel.CENTER);
+                ((JLabel) c).setHorizontalAlignment(JLabel.CENTER);
                 
                 return c;
             }
         });
         
         // Table header styling
-        JTableHeader header = frequentsTable.getTableHeader();
+        JTableHeader header = ordersTable.getTableHeader();
         header.setBackground(PASTEL_TABLE_HEADER);
-        header.setForeground(PASTEL_TEXT);
+        header.setForeground(Color.red);
         header.setFont(new Font("Serif", Font.BOLD, 14));
         
-        JScrollPane scrollPane = new JScrollPane(frequentsTable);
+        JScrollPane scrollPane = new JScrollPane(ordersTable);
         scrollPane.setBorder(BorderFactory.createLineBorder(PASTEL_TEXT, 1));
         tablePanel.add(scrollPane, BorderLayout.CENTER);
         
         // Arrange form and table with split pane
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, formPanel, tablePanel);
-        splitPane.setDividerLocation(150);
+        splitPane.setDividerLocation(200); // Mejor ubicación del divisor
         splitPane.setBorder(null);
         splitPane.setBackground(PASTEL_BACKGROUND);
         
@@ -184,7 +205,7 @@ public class addFrequents extends JFrame {
         JPanel controlPanel = new JPanel();
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
         controlPanel.setBackground(PASTEL_BACKGROUND);
-        controlPanel.setPreferredSize(new Dimension(800, 60));
+        controlPanel.setPreferredSize(new Dimension(850, 60));
         
         // Status label
         statusLabel = new JLabel("Ready to connect", JLabel.CENTER);
@@ -194,23 +215,25 @@ public class addFrequents extends JFrame {
         controlPanel.add(statusLabel);
         
         JButton connectButton = createStyledButton("Connect");
-        connectButton.addActionListener(e -> loadFrequentsData());
+        connectButton.addActionListener(e -> loadOrdersData());
         controlPanel.add(connectButton);
         
         JButton refreshButton = createStyledButton("Refresh");
-        refreshButton.addActionListener(e -> loadFrequentsData());
+        refreshButton.addActionListener(e -> loadOrdersData());
         controlPanel.add(refreshButton);
         
-        JButton exitButton = createStyledButton("Exit");
-        exitButton.addActionListener(e -> System.exit(0));
-        controlPanel.add(exitButton);
+        JButton clearButton = createStyledButton("Clear");
+        clearButton.addActionListener(e -> clearForm());
+        controlPanel.add(clearButton);
+        
+        // Se ha eliminado el botón "Exit" como solicitado
         
         mainPanel.add(controlPanel, BorderLayout.SOUTH);
         
         add(mainPanel, BorderLayout.CENTER);
         
         // Load data on startup
-        SwingUtilities.invokeLater(() -> loadFrequentsData());
+        SwingUtilities.invokeLater(() -> loadOrdersData());
     }
     
     private JButton createStyledButton(String text) {
@@ -221,15 +244,15 @@ public class addFrequents extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 if (getModel().isPressed()) {
-                    g2.setColor(new Color(216, 191, 216)); // Pressed color
+                    g2.setColor(new Color(255, 69, 0)); // Pressed color - Orange Red
                 } else if (getModel().isRollover()) {
-                    g2.setColor(new Color(238, 130, 238)); // Hover color
+                    g2.setColor(new Color(255, 140, 0)); // Hover color - Dark Orange
                 } else {
                     g2.setColor(PASTEL_BUTTON); // Default color
                 }
                 
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-                g2.setColor(new Color(139, 0, 139, 50)); // Border
+                g2.setColor(new Color(178, 34, 34, 80)); // Border - Firebrick with alpha
                 g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 15, 15);
                 
                 // Draw text
@@ -247,7 +270,7 @@ public class addFrequents extends JFrame {
             
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(120, 40);
+                return new Dimension(130, 40); // Botones un poco más anchos
             }
         };
         
@@ -260,7 +283,7 @@ public class addFrequents extends JFrame {
         return button;
     }
     
-    private void loadFrequentsData() {
+    private void loadOrdersData() {
         Connection conn = null;
         Statement stmt = null;
         ResultSet rs = null;
@@ -275,16 +298,18 @@ public class addFrequents extends JFrame {
             tableModel.setRowCount(0);
             
             // Execute SELECT query
-            String sql = "SELECT * FROM " + TABLE_NAME + " ORDER BY " + COL_NAME_ID;
+            String sql = "SELECT " + COL_NUMORD + ", " + COL_MENU_TYPE + ", " + COL_MENU_ID + 
+                         " FROM " + TABLE_NAME + " ORDER BY " + COL_NUMORD;
             rs = stmt.executeQuery(sql);
             
             // Process results
             while (rs.next()) {
-                String nameId = rs.getString(COL_NAME_ID);
-                String restaurName = rs.getString(COL_RESTAUR_NAME);
+                int numOrd = rs.getInt(COL_NUMORD);
+                int menuType = rs.getInt(COL_MENU_TYPE);
+                int menuId = rs.getInt(COL_MENU_ID);
                 
                 // Add row to table model
-                tableModel.addRow(new Object[]{nameId, restaurName});
+                tableModel.addRow(new Object[]{numOrd, menuType, menuId});
             }
             
             statusLabel.setText("Connected - Data loaded successfully");
@@ -306,14 +331,29 @@ public class addFrequents extends JFrame {
         }
     }
     
-    private void addFrequent() {
-        String nameId = nameIdField.getText().trim();
-        String restaurantName = restaurantNameField.getText().trim();
-        
+    private void updateMenuOrder() {
         // Validate input
-        if (nameId.isEmpty() || restaurantName.isEmpty()) {
+        if (orderNumberField.getText().trim().isEmpty() || 
+            menuTypeField.getText().trim().isEmpty() || 
+            menuIdField.getText().trim().isEmpty()) {
+            
             JOptionPane.showMessageDialog(this, 
-                "Please enter both Name ID and Restaurant Name", 
+                "Please enter Order Number, Menu Type, and Menu ID", 
+                "Validation Error", 
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Parse input values
+        int orderNumber, menuType, menuId;
+        
+        try {
+            orderNumber = Integer.parseInt(orderNumberField.getText().trim());
+            menuType = Integer.parseInt(menuTypeField.getText().trim());
+            menuId = Integer.parseInt(menuIdField.getText().trim());
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Please enter valid numeric values for all fields", 
                 "Validation Error", 
                 JOptionPane.WARNING_MESSAGE);
             return;
@@ -323,44 +363,42 @@ public class addFrequents extends JFrame {
         PreparedStatement pstmt = null;
         
         try {
-            statusLabel.setText("Adding new frequent...");
+            statusLabel.setText("Updating menu order...");
             Class.forName("com.mysql.cj.jdbc.Driver");
             conn = DriverManager.getConnection(DB_URL, USER, PASS);
             
             // Disable auto-commit
             conn.setAutoCommit(false);
             
-            // Add new row in frequents table
-            String sql = "INSERT INTO " + TABLE_NAME + " VALUES (?, ?)";
-            pstmt = conn.prepareStatement(sql);
+            // Update the order with new menu information
+            pstmt = conn.prepareStatement("UPDATE menu_order SET menu_mtype = ?, menu_id = ? WHERE numord = ?");
             
-            pstmt.setString(1, nameId);
-            pstmt.setString(2, restaurantName);
+            pstmt.setInt(1, menuType);
+            pstmt.setInt(2, menuId);
+            pstmt.setInt(3, orderNumber);
+            
             pstmt.executeUpdate();
             
             // Commit changes
             conn.commit();
             
-            // Clear form fields
-            nameIdField.setText("");
-            restaurantNameField.setText("");
-            
-            // Refresh table data
-            loadFrequentsData();
-            
+           
             JOptionPane.showMessageDialog(this, 
-                "Record added successfully", 
+                "Order updated successfully", 
                 "Success", 
                 JOptionPane.INFORMATION_MESSAGE);
-                
-            statusLabel.setText("Connected - Record added successfully");
-        } catch (SQLException | ClassNotFoundException e) {
+                    
+          //Refresh data in the table
+            loadOrdersData();
+            
+        } catch (SQLException e) {
             try {
                 // Rollback the transaction
                 conn.rollback();
                 
                 JOptionPane.showMessageDialog(this, 
-                    "Rollback has been done. " + e.getMessage(), 
+                    "Error updating order: " +
+                    "It is likely that the introduced  menu type or id is not in the list of menus", 
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
                     
@@ -371,6 +409,11 @@ public class addFrequents extends JFrame {
                     "Database Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, 
+                    "There has been an error: " + e.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
         } finally {
             // Close resources
             try {
@@ -382,6 +425,13 @@ public class addFrequents extends JFrame {
         }
     }
     
+    private void clearForm() {
+        orderNumberField.setText("");
+        menuTypeField.setText("");
+        menuIdField.setText("");
+        ordersTable.clearSelection();
+    }
+    
     public static void main(String[] args) {
         try {
             // Set look and feel to system look and feel
@@ -391,7 +441,7 @@ public class addFrequents extends JFrame {
         }
         
         SwingUtilities.invokeLater(() -> {
-            addFrequents app = new addFrequents();
+            UpdateMenuOrder app = new UpdateMenuOrder();
             app.setVisible(true);
         });
     }

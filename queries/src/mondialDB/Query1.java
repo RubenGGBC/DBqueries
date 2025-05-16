@@ -1,11 +1,11 @@
-package MondialDB;
+package mondialDB;
 
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
 import java.util.Vector;
 
-public class query1 extends JFrame {
+public class Query1 extends JFrame {
     private static final Color PASTEL_BACKGROUND = new Color(253, 245, 230); // Soft peach
     private static final Color PASTEL_HEADER = new Color(255, 228, 196); // Bisque
     private static final Color PASTEL_TEXT = new Color(119, 136, 153); // Slate gray
@@ -15,10 +15,9 @@ public class query1 extends JFrame {
     private JTable resultTable;
     private JButton executeButton;
 
-    public query1() {
+    public Query1() {
         setTitle("European Countries with Long Rivers");
         setSize(800, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setBackground(PASTEL_BACKGROUND);
 
         initComponents();
@@ -115,7 +114,7 @@ public class query1 extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
-                new query1().setVisible(true);
+                new Query1().setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();
             }

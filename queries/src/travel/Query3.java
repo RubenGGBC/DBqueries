@@ -11,7 +11,7 @@ import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
 
-public class TourGuideRevenueViewer extends JFrame {
+public class Query3 extends JFrame {
     private JPanel contentPane;
     private JTable tableResults;
     private DefaultTableModel tableModel;
@@ -69,7 +69,7 @@ public class TourGuideRevenueViewer extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    TourGuideRevenueViewer frame = new TourGuideRevenueViewer();
+                    Query3 frame = new Query3();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -81,7 +81,7 @@ public class TourGuideRevenueViewer extends JFrame {
     /**
      * Create the frame.
      */
-    public TourGuideRevenueViewer() {
+    public Query3() {
         setTitle("Tour Guide Revenue Analysis");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1200, 700);
@@ -310,22 +310,6 @@ public class TourGuideRevenueViewer extends JFrame {
             }
         });
         panelFooter.add(btnShowSQL);
-        
-        btnExport = createStyledButton("Export Data");
-        btnExport.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                exportData();
-            }
-        });
-        panelFooter.add(btnExport);
-        
-        JButton btnExit = createStyledButton("Exit");
-        btnExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        panelFooter.add(btnExit);
     }
     
     /**
@@ -396,25 +380,7 @@ public class TourGuideRevenueViewer extends JFrame {
         
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
-    
-    /**
-     * Export data to a file (placeholder)
-     */
-    private void exportData() {
-        if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No data to export. Please execute the query first.", 
-                "Export Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // This is a placeholder for export functionality
-        JOptionPane.showMessageDialog(this, 
-            "Data would be exported to CSV/Excel here.", 
-            "Export Data", 
-            JOptionPane.INFORMATION_MESSAGE);
-    }
+   
     
     /**
      * Connect to database and fetch data
@@ -483,11 +449,9 @@ public class TourGuideRevenueViewer extends JFrame {
                     txtStatus.setForeground(new Color(200, 255, 200));
                     btnRefresh.setEnabled(true);
                     btnConnect.setText("Reconnect");
-                    btnExport.setEnabled(true);
                 } else {
                     txtStatus.setText("Connection failed. Check console for details.");
                     txtStatus.setForeground(new Color(255, 150, 150));
-                    btnExport.setEnabled(false);
                 }
             }
         };

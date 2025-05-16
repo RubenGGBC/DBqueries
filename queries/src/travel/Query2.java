@@ -11,7 +11,7 @@ import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
 
-public class query2 extends JFrame {
+public class Query2 extends JFrame {
     private JPanel contentPane;
     private JTable tableResults;
     private DefaultTableModel tableModel;
@@ -90,7 +90,7 @@ public class query2 extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    query2 frame = new query2();
+                    Query2 frame = new Query2();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -102,9 +102,8 @@ public class query2 extends JFrame {
     /**
      * Create the frame.
      */
-    public query2() {
+    public Query2() {
         setTitle("Excursion Participation Analysis");
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setBounds(100, 100, 1400, 700);
         setLocationRelativeTo(null);
         
@@ -428,23 +427,6 @@ public class query2 extends JFrame {
         });
         panelFooter.add(btnShowSQL);
         
-        // Add Export button from TourGuideRevenueViewer
-        btnExport = createStyledButton("Export Data");
-        btnExport.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                exportData();
-            }
-        });
-        panelFooter.add(btnExport);
-        
-        // Add Exit button from TourGuideRevenueViewer
-        btnExit = createStyledButton("Exit");
-        btnExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        panelFooter.add(btnExit);
     }
     
     /**
@@ -525,25 +507,7 @@ public class query2 extends JFrame {
         
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
-    
-    /**
-     * Export data to a file (placeholder) like in TourGuideRevenueViewer
-     */
-    private void exportData() {
-        if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No data to export. Please execute the query first.", 
-                "Export Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // This is a placeholder for export functionality
-        JOptionPane.showMessageDialog(this, 
-            "Data would be exported to CSV/Excel here.", 
-            "Export Data", 
-            JOptionPane.INFORMATION_MESSAGE);
-    }
+  
     
     /**
      * Connect to database and fetch data like in TourGuideRevenueViewer
@@ -631,11 +595,9 @@ public class query2 extends JFrame {
                     txtStatus.setForeground(new Color(200, 255, 200));
                     btnRefresh.setEnabled(true);
                     btnConnect.setText("Reconnect");
-                    btnExport.setEnabled(true);
                 } else {
                     txtStatus.setText("Connection failed. Check console for details.");
                     txtStatus.setForeground(new Color(255, 150, 150));
-                    btnExport.setEnabled(false);
                 }
             }
         };

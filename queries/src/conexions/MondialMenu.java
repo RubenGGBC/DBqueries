@@ -1,25 +1,20 @@
-package conexiones;
+package conexions;
 
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
-import Restaurant.UpdateMenuOrder;
-import Restaurant.addFrequents;
+import mondialDB.*;
 
 import java.awt.geom.RoundRectangle2D;
 
-import conexiones.MainMenuConector;
-
 /**
- * RestaurantMenu - Navigation interface for the Restaurant database queries
- * Standardized with pastel color theme similar to MondialDb
+ * MondialMenu - Navigation interface for the Mondial database queries
  */
-public class RestaurantMenu extends JFrame {
+public class MondialMenu extends JFrame {
     private JPanel contentPane;
     
-    // Color theme - pastel colors like in the Mondial package
     private static final Color PASTEL_BACKGROUND = new Color(253, 245, 230); // Soft peach
     private static final Color PASTEL_HEADER = new Color(255, 228, 196); // Bisque
     private static final Color PASTEL_TEXT = new Color(119, 136, 153); // Slate gray
@@ -39,7 +34,7 @@ public class RestaurantMenu extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    RestaurantMenu frame = new RestaurantMenu();
+                    MondialMenu frame = new MondialMenu();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -51,8 +46,8 @@ public class RestaurantMenu extends JFrame {
     /**
      * Create the frame.
      */
-    public RestaurantMenu() {
-        setTitle("Restaurant Database Queries");
+    public MondialMenu() {
+        setTitle("Mondial Database Queries");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 900, 600);
         setLocationRelativeTo(null);
@@ -83,14 +78,14 @@ public class RestaurantMenu extends JFrame {
         headerPanel.setLayout(null);
         
         // Application title
-        JLabel lblTitle = new JLabel("RESTAURANT DATABASE QUERIES");
+        JLabel lblTitle = new JLabel("MONDIAL DATABASE QUERIES");
         lblTitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblTitle.setForeground(PASTEL_TEXT);
         lblTitle.setFont(new Font("Serif", Font.BOLD, 32));
         lblTitle.setBounds(10, 11, 864, 50);
         headerPanel.add(lblTitle);
         
-        JLabel lblSubtitle = new JLabel("Manage restaurant orders, menu items and customer preferences");
+        JLabel lblSubtitle = new JLabel("Explore geographical and economic data across countries");
         lblSubtitle.setHorizontalAlignment(SwingConstants.CENTER);
         lblSubtitle.setForeground(PASTEL_TEXT);
         lblSubtitle.setFont(new Font("Serif", Font.ITALIC, 18));
@@ -104,30 +99,41 @@ public class RestaurantMenu extends JFrame {
         contentPane.add(buttonsPanel);
         buttonsPanel.setLayout(null);
         
-        // Button 1: Update Menu Order
-        JButton btnUpdateMenuOrder = createMenuButton("Update Menu Order", 
-            "Update existing menu orders with new menu types and IDs", 
+        // Button 1: Long Rivers in Europe
+        JButton btnLongRivers = createStyledButton("European Countries with Long Rivers", 
+            "View European country pairs where both have rivers longer than 6000 km", 
             50, 30, 330, 140);
-        btnUpdateMenuOrder.addActionListener(new ActionListener() {
+        btnLongRivers.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                openUpdateMenuOrder();
+                openQuery1();
             }
         });
-        buttonsPanel.add(btnUpdateMenuOrder);
+        buttonsPanel.add(btnLongRivers);
         
-        // Button 2: Add Frequents
-        JButton btnAddFrequents = createMenuButton("Customer Frequents Manager", 
-            "Manage restaurants frequented by customers", 
+        // Button 2: GDP Comparison
+        JButton btnGdpComparison = createStyledButton("GDP Comparison", 
+            "Analyze countries with highest GDP among their neighbors", 
             50, 210, 330, 140);
-        btnAddFrequents.addActionListener(new ActionListener() {
+        btnGdpComparison.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                openAddFrequents();
+                openQuery2();
             }
         });
-        buttonsPanel.add(btnAddFrequents);
+        buttonsPanel.add(btnGdpComparison);
         
-        // Button 3: Return to Main Menu
-        JButton btnMainMenu = createMenuButton("Return to Main Menu", 
+        // Button 3: Population Density Analysis (New)
+        JButton btnPopulationDensity = createStyledButton("Population Density Analysis", 
+            "View countries with highest population density and city counts", 
+            420, 30, 330, 140);
+        btnPopulationDensity.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                openQuery3();
+            }
+        });
+        buttonsPanel.add(btnPopulationDensity);
+        
+        // Button 4: Return to Main Menu
+        JButton btnMainMenu = createStyledButton("Return to Main Menu", 
             "Go back to the main navigation menu", 
             420, 210, 330, 140);
         btnMainMenu.addActionListener(new ActionListener() {
@@ -144,7 +150,7 @@ public class RestaurantMenu extends JFrame {
         contentPane.add(footerPanel);
         footerPanel.setLayout(new BorderLayout(0, 0));
         
-        JLabel lblStatus = new JLabel(" Restaurant Database Module");
+        JLabel lblStatus = new JLabel(" Mondial Database Module");
         lblStatus.setForeground(PASTEL_TEXT);
         lblStatus.setFont(new Font("Serif", Font.BOLD, 14));
         footerPanel.add(lblStatus, BorderLayout.WEST);
@@ -162,7 +168,7 @@ public class RestaurantMenu extends JFrame {
     /**
      * Creates a styled button with title and description
      */
-    private JButton createMenuButton(String title, String description, int x, int y, int width, int height) {
+    private JButton createStyledButton(String title, String description, int x, int y, int width, int height) {
         JButton button = new JButton() {
             @Override
             protected void paintComponent(Graphics g) {
@@ -234,31 +240,26 @@ public class RestaurantMenu extends JFrame {
     }
     
     /**
-     * Creates a smaller styled button for controls
+     * Open query1 - European Countries with Long Rivers
      */
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Serif", Font.BOLD, 14));
-        button.setForeground(PASTEL_BUTTON_TEXT);
-        button.setBackground(PASTEL_BUTTON);
-        button.setBorderPainted(false);
-        button.setFocusPainted(false);
-        return button;
-    }
-    
-    /**
-     * Open UpdateMenuOrder
-     */
-    private void openUpdateMenuOrder() {
-        UpdateMenuOrder frame = new UpdateMenuOrder();
+    private void openQuery1() {
+        Query1 frame = new Query1(); // MondialDB.query1
         frame.setVisible(true);
     }
     
     /**
-     * Open AddFrequents
+     * Open query2 - GDP Comparison
      */
-    private void openAddFrequents() {
-        addFrequents frame = new addFrequents();
+    private void openQuery2() {
+        Query2 frame = new Query2(); // MondialDB.query2
+        frame.setVisible(true);
+    }
+    
+    /**
+     * Open query3 - Population Density Analysis (New)
+     */
+    private void openQuery3() {
+        Query3 frame = new Query3(); // MondialDB.query3
         frame.setVisible(true);
     }
     

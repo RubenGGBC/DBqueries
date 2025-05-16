@@ -1,4 +1,4 @@
-package employee;
+package company;
 
 import java.awt.*;
 import java.sql.*;
@@ -9,13 +9,15 @@ import java.awt.event.*;
 import java.awt.geom.RoundRectangle2D;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 
-public class EmployyePairs extends JFrame {
+public class Query3 extends JFrame {
     private JPanel contentPane;
     private JTable tableResults;
     private DefaultTableModel tableModel;
     private JTextField txtStatus;
+    private JTextField txtProjectNumber;
+    private JTextField txtHoursThreshold;
     private JButton btnConnect;
-    private JButton btnRefresh;
+    private JButton btnClear;
     private JButton btnShowSQL;
     private JButton btnExport;
     
@@ -23,64 +25,31 @@ public class EmployyePairs extends JFrame {
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
     
-    // The SQL query
-    private static final String DEPARTMENT_COMPARISON_QUERY = 
-        "SELECT d1.Dname AS First_Department_Name, d1.Dnumber AS First_Department_Number,\n" +
-        "    (\n" +
-        "        SELECT COUNT(*)\n" +
-        "        FROM employee AS E_Male\n" +
-        "        WHERE E_Male.Dno = d1.Dnumber AND E_Male.Sex = 'M'\n" +
-        "    ) AS Number_Male_Employees_Dept1,\n" +
-        "    d2.Dname AS Second_Department_Name, d2.Dnumber AS Second_Department_Number,\n" +
-        "    (\n" +
-        "        SELECT COUNT(*)\n" +
-        "        FROM employee AS E_Female\n" +
-        "        WHERE E_Female.Dno = d2.Dnumber AND E_Female.Sex = 'F'\n" +
-        "    ) AS Number_Female_Employees_Dept2\n" +
-        "FROM department AS d1 \n" +
-        "    CROSS JOIN department d2\n" +
-        "WHERE d1.Dnumber != d2.Dnumber\n" +
-        "    AND NOT EXISTS (\n" +
-        "        SELECT *\n" +
-        "        FROM project AS p3\n" +
-        "        INNER JOIN works_on AS wo3 ON p3.Pnumber = wo3.Pno\n" +
-        "        INNER JOIN employee AS e3 ON wo3.Essn = e3.Ssn\n" +
-        "        WHERE e3.Sex = 'M' AND e3.Dno = d1.Dnumber\n" +
-        "        AND NOT EXISTS (\n" +
-        "            SELECT *\n" +
-        "            FROM works_on AS wo4\n" +
-        "            INNER JOIN employee AS e4 ON wo4.Essn = e4.Ssn\n" +
-        "            WHERE e4.Sex = 'F' AND e4.Dno = d2.Dnumber\n" +
-        "            AND wo4.Pno = p3.Pnumber\n" +
-        "        )\n" +
+    private static final String EMPLOYEE_HOURS_QUERY_TEMPLATE = 
+        "SELECT 'Highest hours below given hours' AS Category,\n" +
+        "    e1.Fname, e1.Lname, ? AS Project_Number, wo1.Hours\n" +
+        "FROM employee e1\n" +
+        "    INNER JOIN works_on AS wo1 ON e1.Ssn = wo1.Essn\n" +
+        "WHERE wo1.Pno = ? AND wo1.Hours < ?\n" +
+        "    AND wo1.Hours = (\n" +
+        "        SELECT MAX(wo2.Hours)\n" +
+        "        FROM works_on AS wo2\n" +
+        "        WHERE wo2.Pno = ? AND wo2.Hours < ?\n" +
         "    )\n" +
-        "    AND NOT EXISTS (\n" +
-        "        SELECT *\n" +
-        "        FROM works_on AS wo5\n" +
-        "        INNER JOIN employee AS e5 ON wo5.Essn = e5.Ssn\n" +
-        "        WHERE e5.Sex = 'F' AND e5.Dno = d2.Dnumber\n" +
-        "        AND NOT EXISTS (\n" +
-        "           SELECT *\n" +
-        "            FROM project AS p4\n" +
-        "            INNER JOIN works_on AS wo6 ON p4.Pnumber = wo6.Pno\n" +
-        "            INNER JOIN employee AS e6 ON wo6.Essn = e6.Ssn\n" +
-        "            WHERE e6.Sex = 'M' AND e6.Dno = d1.Dnumber\n" +
-        "            AND wo5.Pno = p4.Pnumber\n" +
-        "        )\n" +
-        "    )\n" +
-        "    AND EXISTS (\n" +
-        "        SELECT *\n" +
-        "        FROM employee e7\n" +
-        "        WHERE e7.Dno = d1.Dnumber AND e7.Sex = 'M'\n" +
-        "    )\n" +
-        "    AND EXISTS (\n" +
-        "        SELECT *\n" +
-        "        FROM employee e8\n" +
-        "        WHERE e8.Dno = d2.Dnumber AND e8.Sex = 'F'\n" +
-        "    )\n" +
-        "ORDER BY \n" +
-        "    d1.Dnumber, d2.Dnumber;";
-
+        "    \n" +
+        "UNION ALL\n" +
+        "SELECT 'Lowest hours above given hours' AS Category,\n" +
+        "    e3.Fname, e3.Lname, ? AS Project_Number, wo3.Hours\n" +
+        "FROM employee e3\n" +
+        "    INNER JOIN works_on AS wo3 ON e3.Ssn = wo3.Essn\n" +
+        "WHERE wo3.Pno = ?\n" +
+        "    AND wo3.Hours > ?\n" +
+        "    AND wo3.Hours = (\n" +
+        "        SELECT MIN(wo4.Hours)\n" +
+        "        FROM works_on wo4\n" +
+        "        WHERE wo4.Pno = ? AND wo4.Hours > ?\n" +
+        "    );";
+    
     // Green color theme for Employee package
     private static final Color DARK_GREEN = new Color(25, 80, 45);
     private static final Color MEDIUM_GREEN = new Color(46, 125, 50);
@@ -103,7 +72,7 @@ public class EmployyePairs extends JFrame {
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
-                    EmployyePairs frame = new EmployyePairs();
+                    Query3 frame = new Query3();
                     frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -115,10 +84,10 @@ public class EmployyePairs extends JFrame {
     /**
      * Create the frame.
      */
-    public EmployyePairs() {
-        setTitle("Department Comparison Analyzer");
+    public Query3() {
+        setTitle("Project Hours Analysis");
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setBounds(100, 100, 1000, 600);
+        setBounds(100, 100, 900, 600);
         setLocationRelativeTo(null);
         
         // Create gradient panel
@@ -138,19 +107,19 @@ public class EmployyePairs extends JFrame {
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(0, 0));
         
-        // Header Panel
+        // Header panel
         JPanel headerPanel = new JPanel();
         headerPanel.setOpaque(false);
-        headerPanel.setPreferredSize(new Dimension(1000, 80));
+        headerPanel.setPreferredSize(new Dimension(900, 80));
         headerPanel.setLayout(new BorderLayout());
         
-        JLabel titleLabel = new JLabel("Department Comparison Analysis");
+        JLabel titleLabel = new JLabel("Project Hours Analysis");
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel.setForeground(Color.green.darker());
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
         headerPanel.add(titleLabel, BorderLayout.CENTER);
         
-        JLabel subtitleLabel = new JLabel("Find department pairs with male and female employees working on the same projects");
+        JLabel subtitleLabel = new JLabel("Find employees with highest and lowest hours worked on projects");
         subtitleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         subtitleLabel.setForeground(new Color(220, 255, 220));
         subtitleLabel.setFont(new Font("Segoe UI", Font.ITALIC, 16));
@@ -162,7 +131,7 @@ public class EmployyePairs extends JFrame {
         JPanel statementPanel = new JPanel();
         statementPanel.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
         statementPanel.setBackground(MEDIUM_GREEN);
-        statementPanel.setPreferredSize(new Dimension(1000, 80));
+        statementPanel.setPreferredSize(new Dimension(900, 80));
         contentPane.add(statementPanel, BorderLayout.NORTH);
         statementPanel.setLayout(new BorderLayout());
         
@@ -172,10 +141,8 @@ public class EmployyePairs extends JFrame {
         titleStatementLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
         statementPanel.add(titleStatementLabel, BorderLayout.NORTH);
         
-        String statementText = "Find all pairs of departments (d1, d2), where d1 has male employees and d2 has female employees, " +
-                              "such that every project with male employees from d1 also has female employees from d2 " +
-                              "working on it, and every project with female employees from d2 also has male employees " +
-                              "from d1 working on it.";
+        String statementText = "Given a project number and hours threshold, find the employee with the highest hours below " +
+                             "the threshold and the employee with the lowest hours above the threshold.";
                               
         JTextArea txtStatement = new JTextArea(statementText);
         txtStatement.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -188,8 +155,60 @@ public class EmployyePairs extends JFrame {
         
         JScrollPane statementScrollPane = new JScrollPane(txtStatement);
         statementScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        statementScrollPane.setPreferredSize(new Dimension(1000, 80));
+        statementScrollPane.setPreferredSize(new Dimension(900, 80));
         statementPanel.add(statementScrollPane, BorderLayout.CENTER);
+        
+        // Parameters panel
+        JPanel parametersPanel = new JPanel();
+        parametersPanel.setBackground(LIGHT_GREEN);
+        parametersPanel.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
+        parametersPanel.setPreferredSize(new Dimension(900, 70));
+        
+        // Use GridBagLayout for better control over component placement
+        parametersPanel.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        
+        // Project Number label
+        JLabel lblProjectNumber = new JLabel("Project Number:");
+        lblProjectNumber.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblProjectNumber.setForeground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.1;
+        parametersPanel.add(lblProjectNumber, gbc);
+        
+        // Project Number text field
+        txtProjectNumber = new JTextField("30");
+        txtProjectNumber.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtProjectNumber.setBackground(VERY_LIGHT_GREEN);
+        txtProjectNumber.setForeground(DARK_GREEN);
+        gbc.gridx = 1;
+        gbc.weightx = 0.3;
+        parametersPanel.add(txtProjectNumber, gbc);
+        
+        // Hours Threshold label
+        JLabel lblHoursThreshold = new JLabel("Hours Threshold:");
+        lblHoursThreshold.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblHoursThreshold.setForeground(Color.WHITE);
+        gbc.gridx = 2;
+        gbc.weightx = 0.1;
+        gbc.insets = new Insets(10, 30, 10, 5);
+        parametersPanel.add(lblHoursThreshold, gbc);
+        
+        // Hours Threshold text field
+        txtHoursThreshold = new JTextField("15");
+        txtHoursThreshold.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        txtHoursThreshold.setBackground(VERY_LIGHT_GREEN);
+        txtHoursThreshold.setForeground(DARK_GREEN);
+        gbc.gridx = 3;
+        gbc.weightx = 0.3;
+        gbc.insets = new Insets(10, 5, 10, 20);
+        parametersPanel.add(txtHoursThreshold, gbc);
+        
+        contentPane.add(parametersPanel, BorderLayout.NORTH);
         
         // Results panel
         JPanel resultsPanel = new JPanel();
@@ -198,19 +217,18 @@ public class EmployyePairs extends JFrame {
         contentPane.add(resultsPanel, BorderLayout.CENTER);
         resultsPanel.setLayout(new BorderLayout());
         
-        JLabel lblResult = new JLabel("Result:");
+        JLabel lblResult = new JLabel("Results:");
         lblResult.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblResult.setForeground(DARK_GREEN);
         lblResult.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 0));
         resultsPanel.add(lblResult, BorderLayout.NORTH);
         
         String[] columnNames = {
-            "First Dept Name", 
-            "First Dept No", 
-            "Male Employees", 
-            "Second Dept Name", 
-            "Second Dept No", 
-            "Female Employees"
+            "Category", 
+            "First Name", 
+            "Last Name", 
+            "Project Number", 
+            "Hours Worked"
         };
         
         tableModel = new DefaultTableModel(columnNames, 0) {
@@ -221,10 +239,8 @@ public class EmployyePairs extends JFrame {
             
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 1) return Integer.class; // First_Department_Number
-                if (columnIndex == 2) return Integer.class; // Number_Male_Employees_Dept1
-                if (columnIndex == 4) return Integer.class; // Second_Department_Number
-                if (columnIndex == 5) return Integer.class; // Number_Female_Employees_Dept2
+                if (columnIndex == 3) return Integer.class; // Project Number
+                if (columnIndex == 4) return Double.class;  // Hours
                 return String.class;
             }
         };
@@ -243,6 +259,7 @@ public class EmployyePairs extends JFrame {
         header.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
         header.setPreferredSize(new Dimension(header.getWidth(), 30));
         
+        // Set alternative row colors
         tableResults.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value,
@@ -294,35 +311,34 @@ public class EmployyePairs extends JFrame {
         JPanel controlPanel = new JPanel();
         controlPanel.setBorder(BorderFactory.createLineBorder(DARK_GREEN, 1));
         controlPanel.setBackground(LIGHT_GREEN);
-        controlPanel.setPreferredSize(new Dimension(1000, 60));
+        controlPanel.setPreferredSize(new Dimension(900, 60));
         contentPane.add(controlPanel, BorderLayout.SOUTH);
         controlPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 15));
         
-        txtStatus = new JTextField("Not connected to database");
+        txtStatus = new JTextField("Ready to connect and search");
         txtStatus.setEditable(false);
         txtStatus.setFont(new Font("Segoe UI", Font.BOLD, 14));
         txtStatus.setForeground(DARK_GREEN);
         txtStatus.setBackground(VERY_LIGHT_GREEN);
-        txtStatus.setPreferredSize(new Dimension(200, 30));
+        txtStatus.setPreferredSize(new Dimension(250, 30));
         txtStatus.setBorder(BorderFactory.createLineBorder(MEDIUM_GREEN));
         controlPanel.add(txtStatus);
         
-        btnConnect = createStyledButton("Connect");
+        btnConnect = createStyledButton("Connect & Search");
         btnConnect.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                fetchData();
+                connectAndSearch();
             }
         });
         controlPanel.add(btnConnect);
         
-        btnRefresh = createStyledButton("Refresh");
-        btnRefresh.setEnabled(false);
-        btnRefresh.addActionListener(new ActionListener() {
+        btnClear = createStyledButton("Clear");
+        btnClear.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                fetchData();
+                clearTable();
             }
         });
-        controlPanel.add(btnRefresh);
+        controlPanel.add(btnClear);
         
         btnShowSQL = createStyledButton("Show SQL");
         btnShowSQL.addActionListener(new ActionListener() {
@@ -331,22 +347,6 @@ public class EmployyePairs extends JFrame {
             }
         });
         controlPanel.add(btnShowSQL);
-        
-        btnExport = createStyledButton("Export");
-        btnExport.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                exportData();
-            }
-        });
-        controlPanel.add(btnExport);
-        
-        JButton btnExit = createStyledButton("Exit");
-        btnExit.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                dispose();
-            }
-        });
-        controlPanel.add(btnExit);
     }
     
     /**
@@ -386,7 +386,7 @@ public class EmployyePairs extends JFrame {
             
             @Override
             public Dimension getPreferredSize() {
-                return new Dimension(100, 30);
+                return new Dimension(130, 30);
             }
         };
         
@@ -400,75 +400,124 @@ public class EmployyePairs extends JFrame {
     }
     
     /**
-     * Show SQL Statement in a dialog
+     * Show SQL Statement with parameter values filled in
      */
     private void showSQLStatement() {
-        JTextArea textArea = new JTextArea(DEPARTMENT_COMPARISON_QUERY);
+        String projectNumber = txtProjectNumber.getText().trim();
+        String hoursThreshold = txtHoursThreshold.getText().trim();
+        
+        // Replace placeholder parameters with actual values for display
+        String formattedQuery = EMPLOYEE_HOURS_QUERY_TEMPLATE
+            .replaceAll("\\?", "\\{param\\}")
+            .replace("{param}", projectNumber)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold)
+            .replace("{param}", projectNumber)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold)
+            .replace("{param}", projectNumber)
+            .replace("{param}", hoursThreshold);
+        
+        JTextArea textArea = new JTextArea(formattedQuery);
         textArea.setEditable(false);
         textArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
         textArea.setBackground(VERY_LIGHT_GREEN);
         textArea.setForeground(DARK_GREEN);
         
         JScrollPane scrollPane = new JScrollPane(textArea);
-        scrollPane.setPreferredSize(new Dimension(800, 500));
+        scrollPane.setPreferredSize(new Dimension(700, 400));
         
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
     
+    
     /**
-     * Export data to a file (placeholder)
+     * Clear the result table
      */
-    private void exportData() {
-        if (tableModel.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No data to export. Please execute the query first.", 
-                "Export Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // This is a placeholder for export functionality
-        JOptionPane.showMessageDialog(this, 
-            "Data would be exported to CSV/Excel here.", 
-            "Export Data", 
-            JOptionPane.INFORMATION_MESSAGE);
+    private void clearTable() {
+        tableModel.setRowCount(0);
+        txtStatus.setText("Results cleared");
     }
     
     /**
-     * Connect to database and fetch data
+     * Connect to database and search with parameters
      */
-    private void fetchData() {
+    private void connectAndSearch() {
+        String projectNumberStr = txtProjectNumber.getText().trim();
+        String hoursThresholdStr = txtHoursThreshold.getText().trim();
+        
+        int projectNumber;
+        double hoursThreshold;
+        
+        try {
+            projectNumber = Integer.parseInt(projectNumberStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Please enter a valid Project Number", 
+                "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        try {
+            hoursThreshold = Double.parseDouble(hoursThresholdStr);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, 
+                "Please enter a valid Hours Threshold", 
+                "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
         // Clear existing data
         tableModel.setRowCount(0);
-        txtStatus.setText("Connecting to database...");
+        txtStatus.setText("Connecting to database and fetching data...");
         
+        // Use SwingWorker to perform database operations in background
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private boolean success = false;
+            private int resultCount = 0;
             
             @Override
             protected Void doInBackground() throws Exception {
                 Connection conn = null;
-                Statement stmt = null;
+                PreparedStatement pstmt = null;
                 ResultSet rs = null;
                 
                 try {
                     Class.forName("com.mysql.cj.jdbc.Driver");
                     conn = DriverManager.getConnection(DB_URL, USER, PASS);
-                    stmt = conn.createStatement();
-                    rs = stmt.executeQuery(DEPARTMENT_COMPARISON_QUERY);
+                    
+                    // Prepare statement with parameters
+                    pstmt = conn.prepareStatement(EMPLOYEE_HOURS_QUERY_TEMPLATE);
+                    
+                    // Set all parameter values
+                    pstmt.setInt(1, projectNumber);      // Project Number in first SELECT
+                    pstmt.setInt(2, projectNumber);      // Project Number in first WHERE
+                    pstmt.setDouble(3, hoursThreshold);  // Hours threshold in first WHERE
+                    pstmt.setInt(4, projectNumber);      // Project Number in subquery
+                    pstmt.setDouble(5, hoursThreshold);  // Hours threshold in subquery
+                    pstmt.setInt(6, projectNumber);      // Project Number in UNION SELECT
+                    pstmt.setInt(7, projectNumber);      // Project Number in UNION WHERE
+                    pstmt.setDouble(8, hoursThreshold);  // Hours threshold in UNION WHERE
+                    pstmt.setInt(9, projectNumber);      // Project Number in UNION subquery
+                    pstmt.setDouble(10, hoursThreshold); // Hours threshold in UNION subquery
+                    
+                    rs = pstmt.executeQuery();
+                    
                     while (rs.next()) {
-                        String firstDeptName = rs.getString("First_Department_Name");
-                        int firstDeptNo = rs.getInt("First_Department_Number");
-                        int maleCount = rs.getInt("Number_Male_Employees_Dept1");
-                        String secondDeptName = rs.getString("Second_Department_Name");
-                        int secondDeptNo = rs.getInt("Second_Department_Number");
-                        int femaleCount = rs.getInt("Number_Female_Employees_Dept2");
+                        String category = rs.getString("Category");
+                        String firstName = rs.getString("Fname");
+                        String lastName = rs.getString("Lname");
+                        int projectNum = rs.getInt("Project_Number");
+                        double hours = rs.getDouble("Hours");
                         
                         // Add row to table model
                         tableModel.addRow(new Object[] {
-                            firstDeptName, firstDeptNo, maleCount,
-                            secondDeptName, secondDeptNo, femaleCount
+                            category, firstName, lastName, projectNum, hours
                         });
+                        
+                        resultCount++;
                     }
                     
                     success = true;
@@ -482,7 +531,7 @@ public class EmployyePairs extends JFrame {
                     // Close resources
                     try {
                         if (rs != null) rs.close();
-                        if (stmt != null) stmt.close();
+                        if (pstmt != null) pstmt.close();
                         if (conn != null) conn.close();
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -495,13 +544,14 @@ public class EmployyePairs extends JFrame {
             @Override
             protected void done() {
                 if (success) {
-                    txtStatus.setText("Found " + tableModel.getRowCount() + " department pairs");
-                    btnRefresh.setEnabled(true);
-                    btnConnect.setText("Reconnect");
-                    btnExport.setEnabled(true);
+                    if (resultCount > 0) {
+                        txtStatus.setText("Connected successfully. Found " + resultCount + " result(s) for Project=" + projectNumber + ", Hours=" + hoursThreshold);
+                    } else {
+                        txtStatus.setText("Connected successfully. No employees found for Project=" + projectNumber + " with Hours threshold=" + hoursThreshold);
+                    }
+                    btnConnect.setText("Search Again");
                 } else {
-                    txtStatus.setText("Connection failed");
-                    btnExport.setEnabled(false);
+                    txtStatus.setText("Connection failed or query error");
                 }
             }
         };

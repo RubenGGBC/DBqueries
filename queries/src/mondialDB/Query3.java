@@ -1,4 +1,4 @@
-package MondialDB;
+package mondialDB;
 
 import javax.swing.*;
 import javax.swing.table.*;
@@ -8,7 +8,7 @@ import java.awt.geom.RoundRectangle2D;
 import java.sql.*;
 import java.util.Vector;
 
-public class query3 extends JFrame {
+public class Query3 extends JFrame {
     // Pastel color theme consistent with other Mondial frames
     private static final Color PASTEL_BACKGROUND = new Color(253, 245, 230); // Soft peach
     private static final Color PASTEL_HEADER = new Color(255, 228, 196); // Bisque
@@ -21,17 +21,15 @@ public class query3 extends JFrame {
     private JTable resultTable;
     private JButton executeButton;
     private JButton showStatementButton;
-    private JButton exportButton;
     private JLabel statusLabel;
     
     private static final String DB_URL = "jdbc:mysql://dif-mysql.ehu.es:23306/DBI08";
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
 
-    public query3() {
+    public Query3() {
         setTitle("Province Population Analysis");
         setSize(900, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         getContentPane().setBackground(PASTEL_BACKGROUND);
 
         initComponents();
@@ -151,14 +149,8 @@ public class query3 extends JFrame {
         showStatementButton = createStyledButton("Show SQL");
         showStatementButton.addActionListener(e -> showSQLStatement());
         buttonPanel.add(showStatementButton);
+    
         
-        exportButton = createStyledButton("Export Data");
-        exportButton.addActionListener(e -> exportData());
-        buttonPanel.add(exportButton);
-        
-        JButton closeButton = createStyledButton("Close");
-        closeButton.addActionListener(e -> dispose());
-        buttonPanel.add(closeButton);
         
         add(buttonPanel, BorderLayout.SOUTH);
     }
@@ -333,28 +325,13 @@ public class query3 extends JFrame {
         
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
-    
-    private void exportData() {
-        if (resultTable.getModel().getRowCount() == 0) {
-            JOptionPane.showMessageDialog(this, 
-                "No data to export. Please execute the query first.", 
-                "Export Error", 
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-        
-        // This is a placeholder for export functionality
-        JOptionPane.showMessageDialog(this, 
-            "Data would be exported to CSV/Excel here.", 
-            "Export Data", 
-            JOptionPane.INFORMATION_MESSAGE);
-    }
+  
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                new query3().setVisible(true);
+                new Query3().setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();
             }

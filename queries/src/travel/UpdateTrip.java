@@ -64,7 +64,6 @@ public class UpdateTrip extends JFrame {
      */
     public UpdateTrip() {
         setTitle("Update Trip Details");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setBounds(100, 100, 1000, 800); // Increased size to accommodate table
         setLocationRelativeTo(null);
         
@@ -242,10 +241,8 @@ public class UpdateTrip extends JFrame {
         };
         tableModel.addColumn("Trip To");
         tableModel.addColumn("Departure Date");
-        tableModel.addColumn("Return Date");
         tableModel.addColumn("Price/Day ($)");
         tableModel.addColumn("Guide ID");
-        tableModel.addColumn("Trip Type");
         
         // Create and configure the table
         tblTrips = new JTable(tableModel);
@@ -257,7 +254,7 @@ public class UpdateTrip extends JFrame {
         tblTrips.setSelectionForeground(Color.WHITE);
         tblTrips.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
         tblTrips.getTableHeader().setBackground(new Color(51, 102, 153));
-        tblTrips.getTableHeader().setForeground(Color.WHITE);
+        tblTrips.getTableHeader().setForeground(Color.BLACK);
         
         // Add row selection listener to populate fields when a row is selected
         tblTrips.getSelectionModel().addListSelectionListener(e -> {
@@ -267,8 +264,8 @@ public class UpdateTrip extends JFrame {
                 txtDepartureDate.setText(tblTrips.getValueAt(row, 1).toString());
                 
                 // Store current values
-                currentPrice = Double.parseDouble(tblTrips.getValueAt(row, 3).toString().replace("$", "").replace(",", ""));
-                currentGuideId = Integer.parseInt(tblTrips.getValueAt(row, 4).toString());
+                currentPrice = Double.parseDouble(tblTrips.getValueAt(row, 2).toString().replace("$", "").replace(",", ""));
+                currentGuideId = Integer.parseInt(tblTrips.getValueAt(row, 3).toString());
                 
                 // Set tooltips
                 NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
@@ -427,7 +424,7 @@ public class UpdateTrip extends JFrame {
                     conn = DriverManager.getConnection(DB_URL, USER, PASS);
                     
                     // Query all trips
-                    String query = "SELECT TripTo, DepartureDate, ReturnDate, PpDay, GuideId, TripType FROM trip";
+                    String query = "SELECT TripTo, DepartureDate, Ppday, GuideId FROM trip";
                     stmt = conn.createStatement();
                     rs = stmt.executeQuery(query);
                     
@@ -439,10 +436,8 @@ public class UpdateTrip extends JFrame {
                         Vector<Object> row = new Vector<>();
                         row.add(rs.getString("TripTo"));
                         row.add(rs.getString("DepartureDate"));
-                        row.add(rs.getString("ReturnDate"));
-                        row.add(currencyFormat.format(rs.getDouble("PpDay")));
+                        row.add(currencyFormat.format(rs.getDouble("Ppday")));
                         row.add(rs.getInt("GuideId"));
-                        row.add(rs.getString("TripType"));
                         tableModel.addRow(row);
                     }
                 } catch (SQLException e) {
@@ -631,30 +626,14 @@ public class UpdateTrip extends JFrame {
         String newPriceText = txtNewPrice.getText().trim();
         String newGuideIdText = txtNewGuideId.getText().trim();
         
-        // Validate that at least one field has a value
-        if (newPriceText.isEmpty() && newGuideIdText.isEmpty()) {
-            JOptionPane.showMessageDialog(this, 
-                "At least one field (Price or Guide ID) must be filled to update.", 
-                "Validation Error", 
-                JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        
+   
         // Parse and validate input values
         Double newPrice = null;
         Integer newGuideId = null;
         
         try {
-            if (!newPriceText.isEmpty()) {
-                newPrice = Double.parseDouble(newPriceText);
-                if (newPrice <= 0) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Price must be a positive number.", 
-                        "Validation Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
+            newPrice = Double.parseDouble(newPriceText);
+            System.out.println(newPrice);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, 
                 "Invalid price format. Please enter a valid number.", 
@@ -664,16 +643,8 @@ public class UpdateTrip extends JFrame {
         }
         
         try {
-            if (!newGuideIdText.isEmpty()) {
-                newGuideId = Integer.parseInt(newGuideIdText);
-                if (newGuideId <= 0) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Guide ID must be a positive number.", 
-                        "Validation Error", 
-                        JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-            }
+            newGuideId = Integer.parseInt(newGuideIdText);
+            System.out.println(newGuideId);
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this, 
                 "Invalid Guide ID format. Please enter a valid number.", 
@@ -681,108 +652,71 @@ public class UpdateTrip extends JFrame {
                 JOptionPane.ERROR_MESSAGE);
             return;
         }
-        
-        final Double finalNewPrice = newPrice != null ? newPrice : currentPrice;
-        final Integer finalNewGuideId = newGuideId != null ? newGuideId : currentGuideId;
-        
+       
         // Update status
         txtStatus.setText("Updating trip...");
-        
-        // Use SwingWorker to perform database operations in background
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            private boolean success = false;
-            private String errorMessage = "";
             
-            @Override
-            protected Void doInBackground() throws Exception {
-                Connection conn = null;
-                PreparedStatement pstmt = null;
+        Connection conn = null;
+        PreparedStatement pstmt = null;
                 
-                try {
-                    // Connect to database
-                    conn = DriverManager.getConnection(DB_URL, USER, PASS);
+        try {
+        	Class.forName("com.mysql.cj.jdbc.Driver");
+            conn = DriverManager.getConnection(DB_URL, USER, PASS);
                     
-                    // Set auto-commit to false for transaction
-                    conn.setAutoCommit(false);
+            // Set auto-commit to false for transaction
+            conn.setAutoCommit(false);
                     
-                    // Prepare update query
-                    pstmt = conn.prepareStatement("UPDATE trip SET Ppday = ?, GuideId = ? WHERE TripTo = ? AND DepartureDate = ?");
+            // Prepare update query
+            pstmt = conn.prepareStatement("UPDATE trip SET Ppday = ?, GuideId = ? WHERE TripTo = ? AND DepartureDate = ?");
                     
-                    pstmt.setDouble(1, finalNewPrice);
-                    pstmt.setInt(2, finalNewGuideId);
-                    pstmt.setString(3, txtTripTo.getText().trim());
-                    pstmt.setString(4, txtDepartureDate.getText().trim());
-                    
-                    int rowsAffected = pstmt.executeUpdate();
-                    
-                    if (rowsAffected > 0) {
-                        conn.commit();
-                        success = true;
-                    } else {
-                        conn.rollback();
-                        errorMessage = "No rows were updated. Trip may no longer exist.";
-                        success = false;
-                    }
-                } catch (SQLException e) {
-                    try {
-                        if (conn != null) conn.rollback();
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                    }
-                    e.printStackTrace();
-                    errorMessage = "Error: " + e.getMessage();
-                    success = false;
-                } finally {
-                    try {
-                        if (conn != null) conn.setAutoCommit(true);
-                        if (pstmt != null) pstmt.close();
-                        if (conn != null) conn.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-                
-                return null;
-            }
+            pstmt.setDouble(1, newPrice);
+            pstmt.setInt(2, newGuideId);
+            pstmt.setString(3, txtTripTo.getText().trim());
+            pstmt.setString(4, txtDepartureDate.getText().trim());
             
-            @Override
-            protected void done() {
-                if (success) {
-                    txtStatus.setText("Trip updated successfully");
-                    txtStatus.setForeground(new Color(200, 255, 200));
+            //Execute Update
+            pstmt.executeUpdate();
                     
-                    JOptionPane.showMessageDialog(UpdateTrip.this,
-                        "Trip has been updated successfully!",
-                        "Update Successful",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    
-                    // Update current values
-                    currentPrice = finalNewPrice;
-                    currentGuideId = finalNewGuideId;
-                    
-                    // Clear the input fields but keep the trip search fields
-                    txtNewPrice.setText("");
-                    txtNewGuideId.setText("");
-                    
-                    // Update tooltips with new values
-                    NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
-                    txtNewPrice.setToolTipText("Current: " + currencyFormat.format(currentPrice));
-                    txtNewGuideId.setToolTipText("Current: " + currentGuideId);
-                    
-                    // Refresh the table to show updated data
-                    loadAllTrips();
-                } else {
-                    txtStatus.setText("Update failed");
-                    txtStatus.setForeground(new Color(255, 150, 150));
-                    
-                    JOptionPane.showMessageDialog(UpdateTrip.this,
-                        "Error updating trip: " + errorMessage,
-                        "Update Error",
-                        JOptionPane.ERROR_MESSAGE);
-                }
+            conn.commit();
+            
+            JOptionPane.showMessageDialog(this, 
+                    "Record updated successfully", 
+                    "Success", 
+                    JOptionPane.INFORMATION_MESSAGE);
+            
+            //Refresh the data of the table
+            loadAllTrips();
+            
+        } catch (SQLException e) {
+            try {
+            	// Rollback the transaction
+                conn.rollback();
+                                
+                JOptionPane.showMessageDialog(this, 
+                    "Rollback has been done: " +
+                    "It is likely that the introduced guideId is not in the list of guides" , 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                                    
+            } catch (SQLException ex) {
+                JOptionPane.showMessageDialog(this, 
+                    "Error during rollback: " + ex.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
             }
-        };
-        
-        worker.execute();
+        } catch (Exception e) {
+        	JOptionPane.showMessageDialog(this, 
+        			"There has been an error: " + e.getMessage(), 
+                    "Database Error", 
+                    JOptionPane.ERROR_MESSAGE);
+        } finally {
+            // Close resources
+            try {
+                if (pstmt != null) pstmt.close();
+                if (conn != null) conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

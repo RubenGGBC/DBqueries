@@ -1,4 +1,4 @@
-package MondialDB;
+package mondialDB;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -11,7 +11,7 @@ import java.sql.*;
 import java.text.NumberFormat;
 import java.util.Vector;
 
-public class query2 extends JFrame {
+public class Query2 extends JFrame {
     private static final Color BACKGROUND_SOFT_LAVENDER = new Color(230, 230, 250);
     private static final Color HEADER_SOFT_PINK = new Color(255, 182, 193);
     private static final Color TEXT_MUTED_GRAY = new Color(105, 105, 105);
@@ -31,10 +31,9 @@ public class query2 extends JFrame {
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
 
-    public query2() {
+    public Query2() {
         setTitle("GDP Comparison Across Borders");
         setSize(1000, 700);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setBackground(BACKGROUND_SOFT_LAVENDER);
 
         initComponents();
@@ -223,7 +222,7 @@ public class query2 extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-                new query2().setVisible(true);
+                new Query2().setVisible(true);
             } catch (Exception e) {
                 e.printStackTrace();
             }
