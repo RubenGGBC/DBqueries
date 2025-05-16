@@ -6,7 +6,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
@@ -25,40 +24,37 @@ public class Query1 extends JFrame {
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
     
-    // The SQL query
     private static final String HOTEL_OCCUPANCY_QUERY =
     		"SELECT " +
-    				" ht.TripTo, " +
-    				" ht.DepartureDate, " +
-    				" h.HotelId , " +
-    				" h.hotelname, " +
-    				" h.hotelcity, " +
-    				" h.hotelcapacity AS TotalCapacity, " +
-    				" COUNT(DISTINCT htc.CustomerId) AS AssignedCustomers, " +
-    				" h.hotelcapacity - COUNT(DISTINCT htc.CustomerId) AS AvailableCapacity, " +
-    				" ROUND(COUNT(DISTINCT htc.CustomerId) / h.hotelcapacity * 100, 2) AS OccupancyRate, " +
-    				" SUM(htc.NumNights) AS TotalNights, " +
-    				" ROUND(AVG(htc.NumNights), 2) AS AvgStayLength, " +
-    				" MAX(t.Numdays) AS TripDuration, " +
-    				" CASE " +
-    				" WHEN COUNT(DISTINCT htc.CustomerId) > h.hotelcapacity THEN 'OVERBOOKING' " +
-    				" WHEN COUNT(DISTINCT htc.CustomerId) = h.hotelcapacity THEN 'FULL' " +
-    				" WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.8 THEN 'OPTIMAL' " +
-    				" WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.5 THEN 'ACCEPTABLE' " +
-    				" ELSE 'UNDERUSED' " +
-    				" END AS HotelUtilization " +
-    				"FROM " +
-    				" hotel_trip ht " +
-    				" JOIN hotel h ON ht.HotelId = h.HotelId " +
-    				" JOIN hotel_trip_customer htc ON ht.TripTo = htc.TripTo " +
-    				" AND ht.DepartureDate = htc.DepartureDate " +
-    				" AND ht.HotelId = htc.HotelId " +
-    				" JOIN trip t ON ht.TripTo = t.TripTo AND ht.DepartureDate = t.DepartureDate " +
-    				"GROUP BY " +
-    				" ht.TripTo, ht.DepartureDate, h.HotelId, h.hotelname, h.hotelcity, h.hotelcapacity, t.Numdays " +
-    				"ORDER BY " +
-    				" OccupancyRate DESC, TripTo, DepartureDate";
-
+    		"  ht.TripTo, " +
+    		"  ht.DepartureDate, " +
+    		"  h.HotelId, " +
+    		"  h.hotelname, " +
+    		"  h.hotelcity, " +
+    		"  h.hotelcapacity AS TotalCapacity, " +
+    		"  COUNT(DISTINCT htc.CustomerId) AS AssignedCustomers, " +
+    		"  h.hotelcapacity - COUNT(DISTINCT htc.CustomerId) AS AvailableCapacity, " +
+    		"  (COUNT(DISTINCT htc.CustomerId) / h.hotelcapacity * 100) AS OccupancyRate, " +
+    		"  CASE " +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) > h.hotelcapacity THEN 'OVERBOOKING' " +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) = h.hotelcapacity THEN 'FULL' " +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.8 THEN 'OPTIMAL' " +
+    		"    WHEN COUNT(DISTINCT htc.CustomerId) >= h.hotelcapacity * 0.5 THEN 'ACCEPTABLE' " +
+    		"    ELSE 'UNDERUSED' " +
+    		"  END AS HotelUtilization " +
+    		"FROM hotel_trip AS ht " +
+    		"INNER JOIN hotel AS h ON ht.HotelId = h.HotelId " +
+    		"INNER JOIN hotel_trip_customer AS htc ON ht.TripTo = htc.TripTo " +
+    		"  AND ht.DepartureDate = htc.DepartureDate " +
+    		"  AND ht.HotelId = htc.HotelId " +
+    		"WHERE EXISTS (" +
+    		"  SELECT * " +
+    		"  FROM trip AS t " +
+    		"  WHERE t.TripTo = ht.TripTo " +
+    		"  AND t.DepartureDate = ht.DepartureDate " +
+    		") " +
+    		"GROUP BY ht.TripTo, ht.DepartureDate, h.HotelId, h.hotelname, h.hotelcity, h.hotelcapacity " +
+    		"ORDER BY OccupancyRate DESC;";
     // Blue and black color theme for Travel package
     private static final Color DARK_BLUE = new Color(15, 35, 60);
     private static final Color MEDIUM_BLUE = new Color(25, 84, 123);
@@ -170,8 +166,7 @@ public class Query1 extends JFrame {
         
         // Set up table model
         String[] columnNames = {"Trip To", "Departure Date", "Hotel ID", "Hotel Name", "City", 
-                "Capacity", "Assigned", "Available", "Occupancy %", "Total Nights", 
-                "Avg Stay", "Trip Duration", "Utilization"};
+                "Capacity", "Assigned", "Available", "Occupancy %", "Utilization"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -185,9 +180,6 @@ public class Query1 extends JFrame {
                 if (columnIndex == 6) return Integer.class;
                 if (columnIndex == 7) return Integer.class;
                 if (columnIndex == 8) return Double.class;
-                if (columnIndex == 9) return Integer.class;
-                if (columnIndex == 10) return Double.class;
-                if (columnIndex == 11) return Integer.class;
                 return String.class;
             }
         };
@@ -257,7 +249,7 @@ public class Query1 extends JFrame {
             }
         };
         utilizationRenderer.setHorizontalAlignment(JLabel.CENTER);
-        resultTable.getColumnModel().getColumn(12).setCellRenderer(utilizationRenderer);
+        resultTable.getColumnModel().getColumn(9).setCellRenderer(utilizationRenderer);
         
         // Default cell renderer for consistent alternating rows
         resultTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -275,7 +267,7 @@ public class Query1 extends JFrame {
                 }
                 
                 // Center align for most columns
-                if (column != 3 && column != 4 && column != 12) { // Skip name, city, and utilization
+                if (column != 3 && column != 4 && column != 9) { // Skip name, city, and utilization
                     ((JLabel) c).setHorizontalAlignment(JLabel.CENTER);
                 }
                 
@@ -389,8 +381,6 @@ public class Query1 extends JFrame {
             }
         });
         panelControls.add(btnShowSQL);
-        
-      
     }
     
     /**
@@ -472,8 +462,6 @@ public class Query1 extends JFrame {
         JOptionPane.showMessageDialog(this, scrollPane, "SQL Statement", JOptionPane.INFORMATION_MESSAGE);
     }
     
-   
-    
     /**
      * Connect to database and fetch data
      */
@@ -508,18 +496,19 @@ public class Query1 extends JFrame {
                         int totalCapacity = rs.getInt("TotalCapacity");
                         int assignedCustomers = rs.getInt("AssignedCustomers");
                         int availableCapacity = rs.getInt("AvailableCapacity");
-                        double occupancyRate = rs.getDouble("OccupancyRate");
-                        int totalNights = rs.getInt("TotalNights");
-                        double avgStayLength = rs.getDouble("AvgStayLength");
-                        int tripDuration = rs.getInt("TripDuration");
+                        
+                        // These columns might not be in the new query, add defaults or remove from table
+                        double occupancyRate = (double) assignedCustomers / totalCapacity * 100;
+                        int totalNights = 0; // Not in new query
+                        double avgStayLength = 0.0; // Not in new query
+                        int tripDuration = 0; // Not in new query
                         String hotelUtilization = rs.getString("HotelUtilization");
                         
                         // Add row to table model
                         tableModel.addRow(new Object[] {
                             tripTo, departureDate, hotelId, hotelName, hotelCity,
                             totalCapacity, assignedCustomers, availableCapacity,
-                            occupancyRate, totalNights, avgStayLength, tripDuration,
-                            hotelUtilization
+                            occupancyRate, hotelUtilization
                         });
                     }
                     

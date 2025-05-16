@@ -6,7 +6,6 @@ import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.event.*;
-import java.awt.geom.RoundRectangle2D;
 import java.text.NumberFormat;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.util.Locale;
@@ -26,48 +25,31 @@ public class Query2 extends JFrame {
     private static final String USER = "DBI08";
     private static final String PASS = "DBI08";
     
-    // The SQL query
     private static final String EXCURSION_QUERY = 
-        "SELECT " +
-        "    oe.tripto, " +
-        "    oe.departuredate, " +
-        "    oe.codeexc, " +
-        "    oe.excursionto, " +
-        "    COUNT(DISTINCT eoc.customerid) AS ParticipatingCustomers, " +
-        "    (SELECT COUNT(DISTINCT htc.customerid) " +
-        "     FROM hotel_trip_customer htc " +
-        "     WHERE htc.tripto = oe.tripto AND htc.departuredate = oe.departuredate) AS TotalTripCustomers, " +
-        "    ROUND( " +
-        "        COUNT(DISTINCT eoc.customerid) / " +
-        "        (SELECT COUNT(DISTINCT htc.customerid) " +
-        "         FROM hotel_trip_customer htc " +
-        "         WHERE htc.tripto = oe.tripto AND htc.departuredate = oe.departuredate) * 100, " +
-        "    2) AS ParticipationRate, " +
-        "    oe.price AS ExcursionPrice, " +
-        "    COUNT(DISTINCT eoc.customerid) * oe.price AS TotalExcursionRevenue, " +
-        "    t.Numdays * t.ppday * ( " +
-        "        SELECT COUNT(DISTINCT htc.customerid) " +
-        "        FROM hotel_trip_customer htc " +
-        "        WHERE htc.tripto = oe.tripto AND htc.departuredate = oe.departuredate " +
-        "    ) AS TotalTripRevenue, " +
-        "    ROUND( " +
-        "        (COUNT(DISTINCT eoc.customerid) * oe.price) / " +
-        "        (t.Numdays * t.ppday * ( " +
-        "            SELECT COUNT(DISTINCT htc.customerid) " +
-        "            FROM hotel_trip_customer htc " +
-        "            WHERE htc.tripto = oe.tripto AND htc.departuredate = oe.departuredate " +
-        "        )) * 100, " +
-        "    2) AS RevenueContributionPercent " +
-        "FROM " +
-        "    optional_excursion oe " +
-        "    JOIN excur_opt_customer eoc ON oe.tripto = eoc.tripto " +
-        "                             AND oe.departuredate = eoc.departuredate " +
-        "                             AND oe.codeexc = eoc.codeexc " +
-        "    JOIN trip t ON oe.tripto = t.tripto AND oe.departuredate = t.departuredate " +
-        "GROUP BY " +
-        "    oe.tripto, oe.departuredate, oe.codeexc, oe.excursionto, oe.price, t.Numdays, t.ppday " +
-        "ORDER BY " +
-        "    ParticipationRate DESC, TotalExcursionRevenue DESC";
+    		"SELECT " +
+    		"  oe.tripto, " +
+    		"  oe.departuredate, " +
+    		"  oe.codeexc, " +
+    		"  oe.excursionto, " +
+    		"  COUNT(DISTINCT eoc.customerid) AS ParticipatingCustomers, " +
+    		"  (SELECT COUNT(DISTINCT customerid) " +
+    		"   FROM hotel_trip_customer " +
+    		"   WHERE tripto = oe.tripto " +
+    		"   AND departuredate = oe.departuredate) AS TotalTripCustomers, " +
+    		"  oe.price AS ExcursionPrice, " +
+    		"  COUNT(DISTINCT eoc.customerid) * oe.price AS TotalRevenue " +
+    		"FROM optional_excursion AS oe " +
+    		"INNER JOIN excur_opt_customer AS eoc ON oe.tripto = eoc.tripto " +
+    		"  AND oe.departuredate = eoc.departuredate " +
+    		"  AND oe.codeexc = eoc.codeexc " +
+    		"WHERE EXISTS (" +
+    		"  SELECT * " +
+    		"  FROM trip AS t " +
+    		"  WHERE t.tripto = oe.tripto " +
+    		"  AND t.departuredate = oe.departuredate " +
+    		") " +
+    		"GROUP BY oe.tripto, oe.departuredate, oe.codeexc, oe.excursionto, oe.price " +
+    		"ORDER BY ParticipatingCustomers DESC;";
 
     // Blue and black color theme for Travel package - from TourGuideRevenueViewer
     private static final Color DARK_BLUE = new Color(15, 35, 60);
@@ -178,7 +160,7 @@ public class Query2 extends JFrame {
         
         String[] columnNames = {"Trip To", "Departure Date", "Exc. Code", "Excursion To", 
                 "Participating", "Total Customers", "Participation %", "Price", 
-                "Excursion Revenue", "Trip Revenue", "Revenue Contribution %", "Popularity"};
+                "Excursion Revenue", "Popularity"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -192,8 +174,6 @@ public class Query2 extends JFrame {
                 if (columnIndex == 6) return Double.class;
                 if (columnIndex == 7) return Double.class;
                 if (columnIndex == 8) return Double.class;
-                if (columnIndex == 9) return Double.class;
-                if (columnIndex == 10) return Double.class;
                 return String.class;
             }
         };
@@ -224,7 +204,6 @@ public class Query2 extends JFrame {
         currencyRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
         tableResults.getColumnModel().getColumn(7).setCellRenderer(currencyRenderer);
         tableResults.getColumnModel().getColumn(8).setCellRenderer(currencyRenderer);
-        tableResults.getColumnModel().getColumn(9).setCellRenderer(currencyRenderer);
         
         // Percentage formatter like in query1
         DefaultTableCellRenderer percentRenderer = new DefaultTableCellRenderer() {
@@ -245,7 +224,6 @@ public class Query2 extends JFrame {
         };
         percentRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
         tableResults.getColumnModel().getColumn(6).setCellRenderer(percentRenderer);
-        tableResults.getColumnModel().getColumn(10).setCellRenderer(percentRenderer);
         
         // Popularity column renderer with color coding
         DefaultTableCellRenderer popularityRenderer = new DefaultTableCellRenderer() {
@@ -282,7 +260,7 @@ public class Query2 extends JFrame {
             }
         };
         popularityRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        tableResults.getColumnModel().getColumn(11).setCellRenderer(popularityRenderer);
+        tableResults.getColumnModel().getColumn(9).setCellRenderer(popularityRenderer);
         
         // Default cell renderer with alternating row colors like in TourGuideRevenueViewer
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
@@ -326,9 +304,7 @@ public class Query2 extends JFrame {
         tableResults.getColumnModel().getColumn(6).setPreferredWidth(120);
         tableResults.getColumnModel().getColumn(7).setPreferredWidth(100);
         tableResults.getColumnModel().getColumn(8).setPreferredWidth(150);
-        tableResults.getColumnModel().getColumn(9).setPreferredWidth(150);
-        tableResults.getColumnModel().getColumn(10).setPreferredWidth(150);
-        tableResults.getColumnModel().getColumn(11).setPreferredWidth(100);
+        tableResults.getColumnModel().getColumn(9).setPreferredWidth(100);
         
         // Create scroll pane with styled scrollbars like in TourGuideRevenueViewer
         JScrollPane scrollPane = new JScrollPane(tableResults);
@@ -426,7 +402,6 @@ public class Query2 extends JFrame {
             }
         });
         panelFooter.add(btnShowSQL);
-        
     }
     
     /**
@@ -535,17 +510,15 @@ public class Query2 extends JFrame {
                     rs = stmt.executeQuery(EXCURSION_QUERY);
                     
                     while (rs.next()) {
-                        String tripTo = rs.getString("TripTo");
-                        String departureDate = rs.getString("DepartureDate");
-                        String codeExc = rs.getString("CodeExc");
-                        String excursionTo = rs.getString("ExcursionTo");
+                        String tripTo = rs.getString("tripto");
+                        String departureDate = rs.getString("departuredate");
+                        String codeExc = rs.getString("codeexc");
+                        String excursionTo = rs.getString("excursionto");
                         int participatingCustomers = rs.getInt("ParticipatingCustomers");
                         int totalTripCustomers = rs.getInt("TotalTripCustomers");
-                        double participationRate = rs.getDouble("ParticipationRate");
+                        double participationRate = (double) participatingCustomers / totalTripCustomers * 100;
                         double excursionPrice = rs.getDouble("ExcursionPrice");
-                        double totalExcursionRevenue = rs.getDouble("TotalExcursionRevenue");
-                        double totalTripRevenue = rs.getDouble("TotalTripRevenue");
-                        double revenueContributionPercent = rs.getDouble("RevenueContributionPercent");
+                        double totalRevenue = rs.getDouble("TotalRevenue");
                         
                         // Calculate popularity category based on participation rate
                         String popularity;
@@ -559,12 +532,11 @@ public class Query2 extends JFrame {
                             popularity = "LOW";
                         }
                         
-                        // Add row to table model
+                        // Add row to table model - adjusted to match the new number of columns
                         tableModel.addRow(new Object[] {
                             tripTo, departureDate, codeExc, excursionTo,
                             participatingCustomers, totalTripCustomers, participationRate,
-                            excursionPrice, totalExcursionRevenue, totalTripRevenue,
-                            revenueContributionPercent, popularity
+                            excursionPrice, totalRevenue, popularity
                         });
                     }
                     
