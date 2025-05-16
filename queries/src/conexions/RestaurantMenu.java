@@ -11,21 +11,20 @@ import java.awt.geom.RoundRectangle2D;
 
 import restaurant.AddFrequents;
 import restaurant.UpdateMenuOrder;
-import restaurant.AddFrequents;
 
 /**
  * RestaurantMenu - Navigation interface for the Restaurant database queries
- * Standardized with pastel color theme similar to MondialDb
+ * Standardized with red/orange color theme
  */
 public class RestaurantMenu extends JFrame {
     private JPanel contentPane;
     
-    // Color theme - pastel colors like in the Mondial package
-    private static final Color PASTEL_BACKGROUND = new Color(253, 245, 230); // Soft peach
-    private static final Color PASTEL_HEADER = new Color(255, 228, 196); // Bisque
-    private static final Color PASTEL_TEXT = new Color(119, 136, 153); // Slate gray
-    private static final Color PASTEL_BUTTON = new Color(221, 160, 221); // Plum
-    private static final Color PASTEL_BUTTON_TEXT = new Color(75, 0, 130); // Indigo
+    // Color theme - red/orange colors
+    private static final Color PASTEL_BACKGROUND = new Color(255, 245, 238); // Seashell
+    private static final Color PASTEL_HEADER = new Color(255, 160, 122); // Light salmon
+    private static final Color PASTEL_TEXT = new Color(139, 69, 19); // Saddle brown
+    private static final Color PASTEL_BUTTON = new Color(255, 99, 71); // Tomato
+    private static final Color PASTEL_BUTTON_TEXT = new Color(255, 255, 240); // Ivory
     
     /**
      * Launch the application.
@@ -66,8 +65,8 @@ public class RestaurantMenu extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
                 g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                GradientPaint gp = new GradientPaint(0, 0, new Color(253, 245, 230),
-                                                  getWidth(), getHeight(), new Color(255, 222, 173));
+                GradientPaint gp = new GradientPaint(0, 0, new Color(255, 245, 238), // Seashell
+                                                  getWidth(), getHeight(), new Color(255, 160, 122)); // Light salmon
                 g2d.setPaint(gp);
                 g2d.fillRect(0, 0, getWidth(), getHeight());
             }
@@ -98,10 +97,10 @@ public class RestaurantMenu extends JFrame {
         lblSubtitle.setBounds(10, 60, 864, 30);
         headerPanel.add(lblSubtitle);
         
-        // Main panel for buttons
+        // Main panel for buttons - ajustar posición para mejor distribución
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.setOpaque(false);
-        buttonsPanel.setBounds(50, 120, 784, 380);
+        buttonsPanel.setBounds(50, 120, 800, 400); // Aumentado el alto para mejor espaciado
         contentPane.add(buttonsPanel);
         buttonsPanel.setLayout(null);
         
@@ -130,7 +129,7 @@ public class RestaurantMenu extends JFrame {
         // Button 3: Return to Main Menu
         JButton btnMainMenu = createMenuButton("Return to Main Menu", 
             "Go back to the main navigation menu", 
-            420, 210, 330, 140);
+            420, 120, 330, 140); // Ajustado a una posición más centrada
         btnMainMenu.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 returnToMainMenu();
@@ -148,16 +147,9 @@ public class RestaurantMenu extends JFrame {
         JLabel lblStatus = new JLabel(" Restaurant Database Module");
         lblStatus.setForeground(PASTEL_TEXT);
         lblStatus.setFont(new Font("Serif", Font.BOLD, 14));
-        footerPanel.add(lblStatus, BorderLayout.WEST);
+        footerPanel.add(lblStatus, BorderLayout.CENTER); // Cambiado a CENTER para mejor posición
         
-        JButton btnExit = new JButton("Exit");
-        btnExit.setFont(new Font("Serif", Font.BOLD, 14));
-        btnExit.setForeground(PASTEL_BUTTON_TEXT);
-        btnExit.setBackground(PASTEL_BUTTON);
-        btnExit.setBorderPainted(false);
-        btnExit.setFocusPainted(false);
-        btnExit.addActionListener(e -> System.exit(0));
-        footerPanel.add(btnExit, BorderLayout.EAST);
+        // El botón Exit ha sido eliminado
     }
     
     /**
@@ -171,15 +163,15 @@ public class RestaurantMenu extends JFrame {
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
                 
                 if (getModel().isPressed()) {
-                    g2.setColor(new Color(216, 191, 216)); // Pressed color
+                    g2.setColor(new Color(255, 69, 0)); // Pressed color - Orange Red
                 } else if (getModel().isRollover()) {
-                    g2.setColor(new Color(238, 130, 238)); // Hover color
+                    g2.setColor(new Color(255, 140, 0)); // Hover color - Dark Orange
                 } else {
                     g2.setColor(PASTEL_BUTTON); // Default color
                 }
                 
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 15, 15));
-                g2.setColor(new Color(139, 0, 139, 50)); // Border
+                g2.setColor(new Color(178, 34, 34, 80)); // Border - Firebrick with alpha
                 g2.drawRoundRect(0, 0, getWidth()-1, getHeight()-1, 15, 15);
                 
                 // Draw title
@@ -193,7 +185,7 @@ public class RestaurantMenu extends JFrame {
                 
                 // Draw description
                 g2.setFont(new Font("Serif", Font.PLAIN, 14));
-                g2.setColor(new Color(85, 26, 139)); // Dark purple
+                g2.setColor(PASTEL_BUTTON_TEXT); // Cambiado para mejor contraste
                 
                 drawWrappedText(g2, description, 20, 70, getWidth() - 40);
                 
